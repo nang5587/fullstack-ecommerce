@@ -1,1 +1,23 @@
+/* src/index.css (가장 단순하고 올바른 형태) */
+
+/* 1. Tailwind의 스타일을 가져옵니다. */
 @import "tailwindcss";
+
+/* 2. 커스텀 폰트 정의(@font-face)는 여기에 둡니다. */
+@font-face {
+    font-family: 'SBAggro';
+    src: url('./assets/fonts/SBAggroL.woff2') format('woff2');
+    font-weight: 300;
+}
+
+@font-face {
+    font-family: 'SBAggro';
+    src: url('./assets/fonts/SBAggroM.woff2') format('woff2');
+    font-weight: 500;
+}
+
+@font-face {
+    font-family: 'SBAggro';
+    src: url('./assets/fonts/SBAggroB.woff2') format('woff2');
+    font-weight: 700;
+}
