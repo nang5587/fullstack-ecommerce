@@ -1,0 +1,19 @@
+.custom-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.custom-pagination .swiper-pagination-bullet {
+    /* 바 길이 균등 분배 */
+    flex-grow: 1; 
+    height: 3px;
+    background: #646464;
+    transition: background 0.3s;
+    width: 100px;
+    border-radius: 0;
+}
+
+.custom-pagination .swiper-pagination-bullet-active {
+    background: #ffffff;
+}
