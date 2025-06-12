@@ -5,18 +5,24 @@ import 'swiper/css';
 // component 목록
 import ProductCard from "../components/ProductCard";
 
-// test용 더미
-const products = [
-    { id: 1, name: '클래식 레더 자켓', price: 129000, image: '/src/data/imgs/1.jpg' },
-    { id: 2, name: '오버핏 코튼 셔츠', price: 45000, image: '/src/data/imgs/2.jpg' },
-    { id: 3, name: '데미지 워싱 데님', price: 78000, image: '/src/data/imgs/3.jpg' },
-    { id: 4, name: '울 블렌드 스웨터', price: 89000, image: '/src/data/imgs/4.jpg' },
-    { id: 5, name: '미니멀 스니커즈', price: 110000, image: '/src/data/imgs/5.jpg' },
-    { id: 6, name: '코듀로이 와이드 팬츠', price: 65000, image: '/src/data/imgs/6.jpg' },
-    { id: 7, name: '울 블렌드 스웨터', price: 89000, image: '/src/data/imgs/7.jpg' },
-    { id: 8, name: '미니멀 스니커즈', price: 110000, image: '/src/data/imgs/8.jpg' },
-    { id: 9, name: '코듀로이 와이드 팬츠', price: 65000, image: '/src/data/imgs/9.jpg' },
-];
+export default function ProductCarousel({title}) {
+    const [products, setProducts] = useState([]);
+    
+    useEffect(()=>{
+        const fetchProducts = async () => {
+            try{
+                const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await fetch(`http://${baseUrl}:8080/api/public/goods`);
+                const data = await res.json();
+                setProducts(data);
+                console.log(products);
+            }
+            catch (err) {
+                console.error("상품 데이터를 불러오는 데 실패함 : ", err);
+            }
+        };
+        fetchProducts()
+    }, []);
 
 export default function ProductCarousel({title}) {
     return (
