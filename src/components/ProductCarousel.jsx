@@ -18,7 +18,7 @@ export default function ProductCarousel({title}) {
                 console.log(products);
             }
             catch (err) {
-                console.error("상품 데이터를 불러오는 데 실패함 : ", err);
+                console.error("상품 데이터를 불러오는 데 실패함: ", err);
             }
         };
         fetchProducts()
