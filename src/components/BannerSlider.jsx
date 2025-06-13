@@ -5,41 +5,60 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import './BannerSlider.css';
 
-const images = [
-    'src/assets/test_img.jpg',
-    'src/assets/배너1.jpg',
-    'src/assets/배너2.jpg',
-    'src/assets/배너3.jpg',
-    'src/assets/배너4.jpg',
-    'src/assets/배너5.jpg',
-];
+// 훅 목록
+import { useEffect, useState } from 'react';
 
 export default function BannerSlider() {
+    const [banners, setBanners] = useState([]);
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const res = await fetch(`http://${baseUrl}/api/public/banner`);
+                const data = await res.json();
+                setBanners(data);
+            }
+            catch (err) {
+                console.error("배너 이미지를 불러오는 데 실패함: ", err);
+            }
+        };
+        fetchProducts()
+    }, []);
+
     return (
         <div className="relative w-full h-[750px]">
             <Swiper
                 modules={[Autoplay, Pagination]}
                 slidesPerView={1}
-                loop
-                autoplay={{ delay: 3000, disableOnInteraction: false }}
+                loop={banners.length >= 3}
+                autoplay={{ delay: 2800, disableOnInteraction: false }}
                 speed={1500}
                 pagination={{
-                    el: '.custom-pagination',
+                    el: '.custom-progressbar',
+                    type: 'progressbar',
                     clickable: true,
-                    renderBullet: (index, className) => (
-                        `<span class="${className}"></span>`
-                    ),
                 }}
+                className='h-[750px]'
             >
-                {images.map((src, idx) => (
-                    <SwiperSlide key={idx}>
-                        <img src={src} alt={`banner-${idx}`} className="w-full h-[710px] object-cover" />
+                {(banners.length >= 1 ? banners : []).map((src, idx) => (
+                    <SwiperSlide key={idx} className='h-[750px]'>
+                        <img src={`http://${baseUrl}/api/public/img/banner/${src.imagename}.jpg`} alt={`banner-${src.id}`} className="w-full h-[750px] object-cover" />
                     </SwiperSlide>
                 ))}
             </Swiper>
 
             {/* 하단 진행 바 */}
-            <div className="custom-pagination absolute bottom-20 left-0 right-0 mx-auto flex justify-center z-10 w-[300px]"></div>
+            <div className="custom-progressbar absolute z-10 bg-[#444]"
+                style={{
+                    width: '300px',
+                    height: '2.5px',
+                    top: '690px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    overflow: 'hidden'
+                }}>
+            </div>
         </div>
     )
 }

@@ -1,30 +1,35 @@
+// 라우터
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+
 // components 목록
 import Nav from "./components/Nav";
-import ProductCarousel from "./components/ProductCarousel";
-import BannerSlider from "./components/BannerSlider";
+import Footer from "./components/Footer";
+import Home from "./components/Home";
+import Listing from "./components/Listing";
+// import Detail from "./components/Detail";
+// import Login from "./components/Login";
 
 function App() {
   return (
-    <div className="w-full min-h-screen flex flex-col bg-gray-50">
-      <header className="w-full h-32 bg-white flex flex-col flex-shrink-0">
-        <Nav />
-      </header>
+    <BrowserRouter>
+      <div className="w-full min-h-screen flex flex-col bg-white">
+        <header className="w-full h-24 flex flex-col flex-shrink-0">
+          <Nav />
+        </header>
 
-      <main className="w-full flex-1">
-        {/* 배너 */}
-        <div className="w-full mb-20">
-          <BannerSlider />
-        </div>
+        <main className="w-full flex-1">
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Listing />} />
+            {/* <Route path="/login" element={<Login />} /> */}
+          </Routes>
+        </main>
 
-        {/* 상품 */}
-        <ProductCarousel title="추천 스타일"/>
-        <ProductCarousel title="인기 상품"/>
-      </main>
-
-      <footer className="w-full h-40 outline-2 outline-gray-300">
-        <p>footer입니다.</p>
-      </footer>
-    </div>
+        <footer className="w-full h-20">
+          <Footer />
+        </footer>
+      </div>
+    </BrowserRouter>
   )
 }
 

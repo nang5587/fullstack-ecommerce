@@ -1,19 +1,15 @@
-.custom-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.custom-progressbar {
+    position: absolute;
+    /* 또는 relative */
+    overflow: hidden;
+    background: #444;
 }
 
-.custom-pagination .swiper-pagination-bullet {
-    /* 바 길이 균등 분배 */
-    flex-grow: 1; 
-    height: 3px;
-    background: #646464;
-    transition: background 0.3s;
-    width: 100px;
-    border-radius: 0;
-}
-
-.custom-pagination .swiper-pagination-bullet-active {
+.custom-progressbar .swiper-pagination-progressbar-fill {
     background: #ffffff;
+    height: 100%;
+
+    box-shadow: 0 0 12px 4px rgba(255, 255, 255, 0.8);
+
+    transition: width 0.3s ease;
 }
