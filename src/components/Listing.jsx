@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 
 import ProductCard from './ProductCard';
+import SidebarFilters from './SidebarFilter';
 
 export default function Listing() {
     const [products, setProducts] = useState([]);
@@ -51,12 +52,7 @@ export default function Listing() {
 
     return (
         <div className="flex px-8 py-6 gap-6">
-            <div className="w-64 h-[calc(100vh-4rem)] overflow-y-auto bg-white border p-4 sticky top-16">
-                <h2 className="text-lg font-bold mb-4">필터</h2>
-                {/* 여기에 카테고리/성별/가격 필터 등 구성 */}
-                {/* 예시 */}
-                <button onClick={() => setFilters({ ...filters, gender: 'women' })}>여성</button>
-            </div>
+            <SidebarFilters filters={filters} setFilters={setFilters} />
 
             <main className="flex-1">
                 <div className="grid grid-cols-4 gap-6">

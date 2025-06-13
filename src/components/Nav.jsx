@@ -39,7 +39,8 @@ export default function Nav() {
                         {/* 네비 */}
                         {/* 카테고리 아이콘 */}
                         <div className="flex items-center px-10 py-4">
-                            <button className="text-2xl text-gray-700 font-extralight " onClick={() => setIsCateOpen(true)}>
+                            <button className="text-2xl text-gray-700 font-extralight hover:cursor-pointer" 
+                                    onClick={() => setIsCateOpen(true)}>
                                 <BiCategoryAlt />
                             </button>
                             <button
@@ -47,7 +48,7 @@ export default function Nav() {
                                     navigate("/products?gender=f");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
                             >
                                 WOMAN
                             </button>
@@ -56,7 +57,7 @@ export default function Nav() {
                                     navigate("/products?gender=m");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
                             >
                                 MAN
                             </button>
@@ -65,7 +66,7 @@ export default function Nav() {
                                     navigate("/products?main=kids");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
                             >
                                 KIDS
                             </button>
@@ -74,7 +75,7 @@ export default function Nav() {
                                     navigate("/products?main=acc");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
                             >
                                 ACC
                             </button>
