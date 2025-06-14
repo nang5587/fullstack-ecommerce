@@ -1,7 +1,18 @@
 // 이미지 목록
 import tailSearchIcon from '../assets/TailSearchIcon.svg';
 
-export default function TailSearch() {
+// 훅 목록
+import { useState } from 'react';
+
+export default function TailSearch({ onSearch }) {
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" && searchTerm.trim() !== "") {
+            onSearch(searchTerm.trim());
+            setSearchTerm("");
+        }
+    }
     return (
         //    'htmlFor' 속성은 아래 input의 'id'와 일치해야 합니다.
         <label
@@ -14,7 +25,9 @@ export default function TailSearch() {
             <input
                 type="text"
                 id="product-search" // label의 'htmlFor'와 연결
-                // placeholder="상품명 또는 브랜드 입력"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={handleKeyDown}
                 className="
                             w-full                          // 너비를 꽉 채움
                             bg-transparent                  // 배경색 투명하게

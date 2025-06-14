@@ -27,7 +27,7 @@ export default function BannerSlider() {
     }, []);
 
     return (
-        <div className="relative w-full h-[750px]">
+        <div className="relative w-full" style={{ minHeight: 'calc(100vh - 6rem)' }}>
             <Swiper
                 modules={[Autoplay, Pagination]}
                 slidesPerView={1}
@@ -39,11 +39,12 @@ export default function BannerSlider() {
                     type: 'progressbar',
                     clickable: true,
                 }}
-                className='h-[750px]'
+                style={{ minHeight: 'calc(100vh - 6rem)' }}
             >
                 {(banners.length >= 1 ? banners : []).map((src, idx) => (
                     <SwiperSlide key={idx} className='h-[750px]'>
-                        <img src={`http://${baseUrl}/api/public/img/banner/${src.imagename}.jpg`} alt={`banner-${src.id}`} className="w-full h-[750px] object-cover" />
+                        <img src={`http://${baseUrl}/api/public/img/banner/${src.imagename}.jpg`}
+                            alt={`banner-${src.id}`} className="w-full object-cover" style={{ minHeight: 'calc(100vh - 6rem)' }}/>
                     </SwiperSlide>
                 ))}
             </Swiper>

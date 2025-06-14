@@ -17,8 +17,9 @@ export default function Listing() {
         const queryParams = new URLSearchParams(location.search);
         const newFilters = {};
 
-        for (const [key, value] of queryParams.entries()) {
-            newFilters[key] = value;
+        for (const key of queryParams.keys()) {
+            const values = queryParams.getAll(key);
+            newFilters[key] = values.length > 1 ? values : values[0];
         }
 
         setFilters(newFilters);
@@ -29,8 +30,16 @@ export default function Listing() {
         const params = new URLSearchParams({
             page: pageNumber,
             limit: 20,
-            ...filters
         });
+        
+        Object.entries(filters).forEach(([key, value]) => {
+            if (Array.isArray(value)) {
+                value.forEach((v) => params.append(key, v));
+            } else {
+                params.set(key, value);
+            }
+        });
+
         const baseUrl = import.meta.env.VITE_BACKEND_URL;
         const res = await fetch(`http://${baseUrl}/api/public/category?${params.toString()}`);
         const data = await res.json();
@@ -51,7 +60,7 @@ export default function Listing() {
     }
 
     return (
-        <div className="flex px-8 py-6 gap-6">
+        <div className="flex px-8 py-6 gap-6 min-h-screen">
             <SidebarFilters filters={filters} setFilters={setFilters} />
 
             <main className="flex-1">

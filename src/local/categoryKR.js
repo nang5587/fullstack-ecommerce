@@ -49,6 +49,23 @@ const categoryKR = {
     slacks: "슬랙스",
     jumpsuit: "점프수트",
     mini_skirts: "미니스커트",
+
+    // 패턴
+    graphic: "그래픽",
+    striped: "스트라이프",
+    solid: "무지",
+    checkered: "체크",
+    dott: "도트",
+    pattern: "패턴",
+
+    //성별
+    f: "여성",
+    m: "남성",
+    u: "공용",
+
+    // 아동
+    kids: "아동",
+
 };
 
 export default categoryKR;

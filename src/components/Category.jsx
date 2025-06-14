@@ -42,7 +42,7 @@ export default function Category({ isCateOpen, onClose }) {
 
     return (
         <>
-            <div className="flex h-[1000px] overflow-y-auto w-full">
+            <div className="flex min-h-screen overflow-y-auto w-full">
 
                 {/* 대분류 */}
                 <div className="w-48 bg-gray-10 flex flex-col bg-gray-100">

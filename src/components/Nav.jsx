@@ -1,6 +1,3 @@
-// css
-import '../react/style.css'
-
 // UI 목록
 import TailSearch from "../UI/TailSearch";
 
@@ -13,7 +10,7 @@ import { FiUser } from "react-icons/fi";
 import { BiCategoryAlt } from "react-icons/bi";
 
 // 훅 목록
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from "react-router-dom";
 
 export default function Nav() {
@@ -23,14 +20,24 @@ export default function Nav() {
     // 카테고리 랜더링
     const [isCateOpen, setIsCateOpen] = useState(false);
 
+    // 검색어 상태 관리
+    const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
+
+    const handleSearch = (term) => {
+        setSearchTerm(term);
+        navigate(`/products?search=${encodeURIComponent(term)}`);
+        // 여기서 백엔드 요청을 할 수도 있지만,
+        // 일반적으로 검색 결과 페이지에서 받아서 처리하는 경우가 많아요.
+    };
+
 
     return (
         <>
             <div className="relative z-30 bg-white p-4">
                 <div className='flex items-center justify-between px-10 gap-8'>
                     <div className='flex'>
-                        <a href="/" id="test" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black">
+                        <a href="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black">
                             {/* 📢 스토어명 정하기 */}
                             <h1>NAVER</h1>
                             <span>STORE</span>
@@ -39,8 +46,8 @@ export default function Nav() {
                         {/* 네비 */}
                         {/* 카테고리 아이콘 */}
                         <div className="flex items-center px-10 py-4">
-                            <button className="text-2xl text-gray-700 font-extralight hover:cursor-pointer" 
-                                    onClick={() => setIsCateOpen(true)}>
+                            <button className="text-2xl text-gray-700 font-extralight hover:cursor-pointer"
+                                onClick={() => setIsCateOpen(true)}>
                                 <BiCategoryAlt />
                             </button>
                             <button
@@ -84,7 +91,7 @@ export default function Nav() {
 
                     <div className="flex items-center gap-5">
                         <div className="w-full max-w-xs min-w-xs">
-                            <TailSearch />
+                            <TailSearch onSearch={handleSearch} />
                         </div>
 
                         {/* 아이콘 그룹 */}

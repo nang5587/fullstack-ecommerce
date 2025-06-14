@@ -8,7 +8,7 @@ export default function ProductCard({ product }) {
         <div className="group w-64 flex-shrink-0"> {/* w-64: 너비 고정, flex-shrink-0: 줄어들지 않음 */}
             <a href="#" className="block">
                 {/* 상품 이미지 영역 */}
-                <div className="w-[256px] h-96 overflow-hidden rounded-md bg-gray-200">
+                <div className="w-[256px] h-96 overflow-hidden bg-gray-200">
                     <img
                         src={imgUrl}
                         alt={product.productName}
