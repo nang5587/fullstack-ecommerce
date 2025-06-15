@@ -10,7 +10,7 @@ import Footer from "./components/Footer";
 import Home from "./components/Home";
 import Listing from "./components/Listing";
 import Detail from "./components/Detail";
-// import Login from "./components/Login";
+import Login from "./components/Login";
 
 function App() {
   return (
@@ -25,7 +25,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Listing />} />
             <Route path="/detail" element={<Detail />} />
-            {/* <Route path="/login" element={<Login />} /> */}
+            <Route path="/login" element={<Login />} />
           </Routes>
         </main>
 
