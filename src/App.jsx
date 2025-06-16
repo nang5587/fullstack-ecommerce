@@ -1,5 +1,6 @@
 // css
 import './react/style.css'
+import './react/palette.css';
 
 // 라우터
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -9,8 +10,10 @@ import Nav from "./components/Nav";
 import Footer from "./components/Footer";
 import Home from "./components/Home";
 import Listing from "./components/Listing";
+import SearchListing from './components/SearchListing';
 import Detail from "./components/Detail";
 import Login from "./components/Login";
+import ColorPaletteTest from './components/ColorPaletteTest';
 
 function App() {
   return (
@@ -24,8 +27,10 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Listing />} />
+            <Route path="/search" element={<SearchListing />} />
             <Route path="/detail" element={<Detail />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/test" element={<ColorPaletteTest />} />
           </Routes>
         </main>
 

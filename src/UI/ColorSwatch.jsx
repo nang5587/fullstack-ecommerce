@@ -1,10 +1,12 @@
-export default function ColorSwatch({ colorCode, label, selected }) {
+
+export default function ColorSwatch({ colorCode, selected }) {
+
     return (
-        <div className="flex items-center gap-2">
+        <div className="w-full h-full flex flex-col items-center">
             <div
                 className={`
-                    w-[30px] h-[30px] rounded-full border 
-                    ${selected ? 'border-gray-800' : 'border-gray-300'}
+                    w-4/5 aspect-square rounded-full  
+                    ${selected ? 'border-2 border-gray-700' : ''}
                 `}
                 style={{ backgroundColor: colorCode }}
             />

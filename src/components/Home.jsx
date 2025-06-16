@@ -97,12 +97,12 @@ export default function Home() {
         <>
             {/* 배너 */}
             <div ref={bannerRef} className="w-full mb-20"
-                style={{ minHeight: 'calc(100vh - 6rem)' }}>
+                style={{ height: 'calc(100vh - 6rem)' }}>
                 <BannerSlider />
             </div>
 
             {/* 추천 스타일 */}
-            <div ref={recommendRef}>
+            <div className="my-30" ref={recommendRef}>
                 <ProductCarousel title="추천 스타일" column="recommendedItems" />
             </div>
 
@@ -124,10 +124,9 @@ export default function Home() {
                     </p>
                     <div className="w-[160px] lg:w-1/4">
                         <TailButton
-                            caption="쇼핑하러 가기"
-                            color="black"
+                            color="ash"
                             onClick={() => { }}
-                        />
+                        ><span>쇼핑하러 가기</span></TailButton>
                     </div>
                 </div>
 
@@ -137,10 +136,9 @@ export default function Home() {
                 </div>
             </div>
 
-
-
-            {/* 인기 상품 */}
-            <ProductCarousel title="인기 상품" column="popularItems" />
+            <div className="my-30">
+                <ProductCarousel title="인기 상품" column="popularItems" />
+            </div>
         </>
     );
 }

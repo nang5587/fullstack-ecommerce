@@ -66,6 +66,28 @@ const categoryKR = {
     // 아동
     kids: "아동",
 
+    // 색상
+    black: "블랙",
+    white: "화이트",
+    gray: "그레이",
+    navy: "네이비",
+    blue: "블루",
+    sky_blue: "스카이블루",
+    beige: "베이지",
+    brown: "브라운",
+    ivory: "아이보리",
+    khaki: "카키",
+    green: "그린",
+    mint: "민트",
+    yellow: "옐로우",
+    orange: "오렌지",
+    red: "레드",
+    wine: "와인",
+    pink: "핑크",
+    purple: "퍼플",
+    charcoal: "차콜",
+    cream: "크림",
+
 };
 
 export default categoryKR;

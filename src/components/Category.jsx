@@ -19,13 +19,10 @@ export default function Category({ isCateOpen, onClose }) {
         const fetchProducts = async () => {
             try {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`http://${baseUrl}/api/public/home`);
+                const res = await fetch(`http://${baseUrl}/api/public/categoryTree`);
                 const data = await res.json();
-                if (Array.isArray(data.categoryTree)) {
-                    setCategory(data.categoryTree);
-                } else {
-                    console.warn(`categoryTree이(가) 배열이 아님:`, data.categoryTree);
-                }
+                setCategory(data.categoryTree);
+
             }
             catch (err) {
                 console.error("카테고리를 불러오는 데 실패함: ", err);
@@ -45,7 +42,7 @@ export default function Category({ isCateOpen, onClose }) {
             <div className="flex min-h-screen overflow-y-auto w-full">
 
                 {/* 대분류 */}
-                <div className="w-48 bg-gray-10 flex flex-col bg-gray-100">
+                <div className="w-48 bg-gray-10 flex flex-col bg-kalani-ash">
                     {category.map((cate) => (
                         <button
                             key={cate.main}
@@ -92,12 +89,12 @@ export default function Category({ isCateOpen, onClose }) {
                             </div>
                             {/* 드롭다운 */}
                             {hoveredMid === idx && (
-                                <ul className="mt-1 ml-2 bg-gray-100 p-3 shadow-inner space-y-1">
+                                <ul className="mt-1 ml-2 bg-kalani-ash p-3 shadow-inner space-y-1">
                                     {mid.detailList.map((sub, i) => (
                                         <li key={i}
                                             className="pb-2 pl-2 text-sm text-gray-700 hover:text-blue-500 cursor-pointer"
                                             onClick={() => {
-                                                navigate(`/products?main=${selectMain}&mid=${mid.mid}&detail=${sub}`);
+                                                navigate(`/products?main=${selectMain}&mid=${mid.mid}&sub=${sub}`);
                                                 onClose();
                                             }}
                                         >

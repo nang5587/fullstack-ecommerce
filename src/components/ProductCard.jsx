@@ -5,10 +5,10 @@ export default function ProductCard({ product }) {
     const imgUrl = `http://${baseUrl}/api/public/img/goods/${productCode}.jpg`;
     console.log(typeof product.price);
     return (
-        <div className="group w-64 flex-shrink-0"> {/* w-64: 너비 고정, flex-shrink-0: 줄어들지 않음 */}
+        <div className="group w-full flex-shrink-0"> {/* w-64: 너비 고정, flex-shrink-0: 줄어들지 않음 */}
             <a href="#" className="block">
                 {/* 상품 이미지 영역 */}
-                <div className="w-[256px] h-96 overflow-hidden bg-gray-200">
+                <div className="w-full aspect-[3/4] overflow-hidden bg-gray-200">
                     <img
                         src={imgUrl}
                         alt={product.productName}

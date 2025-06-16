@@ -1,0 +1,71 @@
+/*
+ * KALANI Brand Color Palette - Refined & Luxurious
+ * 더 깊고 세련된 무드를 위한 고급 색상 팔레트입니다.
+ */
+
+:root {
+    /* 
+     * Palette 1: "Coastal Morning" (해안의 아침)
+     * 분위기: 안개 낀 새벽 해변의 고요하고 차분한 우아함.
+     */
+    --kalani-coastal-creme: #F4F1ED;
+    /* 부드러운 크림. 기본 배경색. */
+    --kalani-coastal-stone: #D8D2C9;
+    /* 젖은 모래나 돌 같은 그레이지(Greige). */
+    --kalani-coastal-mist: #A2B4C2;
+    /* 물안개 낀 바다의 더스키 블루. */
+    --kalani-coastal-ash: #5D636A;
+    /* 짙은 화산재, 차콜 그레이. 텍스트 및 강조. */
+    --kalani-coastal-gold: #B0926A;
+    /* 바랜 듯한 앤틱 골드. 포인트/주얼리. */
+    --kalani-coastal-driftwood: #EAE0D5;
+    /* 따뜻하고 밝은 유목색. */
+    --kalani-coastal-taupe: #A39887;
+    /* 깊이 있는 회갈색(토프). */
+    --kalani-coastal-shell: #F2E9E4;
+    /* 아주 옅은 분홍빛의 조개색. */
+
+    /*
+     * Palette 2: "Tuscan Sun" (토스카나의 태양)
+     * 분위기: 이탈리아 토스카나 지방의 따뜻한 햇살과 오래된 건축물.
+     */
+    --kalani-tuscan-bone: #EAE3D9;
+    /* 뼈 색깔처럼 자연스러운 오프화이트. */
+    --kalani-tuscan-clay: #B78A6E;
+    /* 구운 흙, 테라코타보다 부드러운 클레이. */
+    --kalani-tuscan-olive: #5C6B59;
+    /* 깊고 차분한 빈티지 올리브 그린. */
+    --kalani-tuscan-umber: #4B3F38;
+    /* 짙은 흙 색깔. 텍스트 및 강조. */
+    --kalani-tuscan-bronze: #8C6A46;
+    /* 그을린 듯한 브론즈. 포인트/가죽. */
+
+
+    /*
+     * Palette 3: "Midnight Velvet" (자정의 벨벳)
+     * 분위기: 벨벳 커튼이 드리워진 고요한 밤의 신비롭고 관능적인 무드.
+     */
+    --kalani-velvet-moon: #E1E1E1;
+    /* 차가운 달빛 같은 밝은 회색. */
+    --kalani-velvet-ink: #2C3342;
+    /* 잉크처럼 깊은 인디고/네이비. 메인. */
+    --kalani-velvet-wine: #6B2E3E;
+    /* 잘 숙성된 와인 같은 딥 버건디. */
+    --kalani-velvet-slate: #848B96;
+    /* 푸른빛이 도는 슬레이트 그레이. */
+    --kalani-velvet-silver: #A9B0B9;
+    /* 빛바랜 듯한 무광 실버. 포인트/주얼리. */
+
+
+    /*
+     * 공통으로 사용할 기본 색상 (고급 버전)
+     */
+    --color-text-primary: #2D3748;
+    /* 기본 텍스트 색상 (아주 진한 회색) */
+    --color-text-secondary: #718096;
+    /* 보조 텍스트 색상 (중간 회색) */
+    --color-border: #E2E8F0;
+    /* 기본 테두리 색상 (연한 회색) */
+    --color-background: #FFFFFF;
+    /* 기본 배경색 (순백색) */
+}

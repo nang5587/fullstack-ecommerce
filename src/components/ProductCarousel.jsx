@@ -16,7 +16,7 @@ export default function ProductCarousel({ title, column }) {
         const fetchProducts = async () => {
             try {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`http://${baseUrl}/api/public/home`);
+                const res = await fetch(`http://${baseUrl}/api/public/${column}`);
                 const data = await res.json();
                 if (Array.isArray(data[column])) {
                     setProducts(data[column]);
@@ -32,19 +32,21 @@ export default function ProductCarousel({ title, column }) {
     }, []);
 
     return (
-        <div className="ml-10 mb-50">
-            <h2 className="text-xl font-bold mb-3">
+        <div className="w-full px-4 md:px-10 mb-12 ml-10">
+            <h2 className="text-xl font-bold mb-4">
                 {title}
             </h2>
             <Swiper
                 modules={[]}
-                spaceBetween={24}
+                spaceBetween={16}
                 // 'auto'로 설정하면 각 슬라이드의 너비를 그대로 유지합니다.
-                slidesPerView={'auto'}
+                slidesPerView="auto"
             >
-                {products.slice(0, 10).map((product) => (
-                    <SwiperSlide key={product.fullcode} className="!w-auto"> {/* !w-auto: 카드 고유 너비 사용 */}
-                        <ProductCard product={product} />
+                {products.map((product) => (
+                    <SwiperSlide key={product.fullcode} className="!w-[330px] h-auto"> {/* !w-auto: 카드 고유 너비 사용 */}
+                        <div className="h-full">
+                            <ProductCard product={product} />
+                        </div>
                     </SwiperSlide>
                 ))}
             </Swiper>

@@ -3,21 +3,50 @@
 /* 1. Tailwind의 스타일을 가져옵니다. */
 @import "tailwindcss";
 
-/* 2. 커스텀 폰트 정의(@font-face)는 여기에 둡니다. */
-@font-face {
-    font-family: 'SBAggro';
-    src: url('./assets/fonts/SBAggroL.woff2') format('woff2');
-    font-weight: 300;
+/* ================================================= */
+/* [추가] KALANI 커스텀 유틸리티 클래스            */
+/* ================================================= */
+
+/* 배경색 (Background Colors) */
+.bg-kalani-creme {
+    @apply bg-[var(--kalani-coastal-creme)];
+}
+.bg-kalani-stone {
+    @apply bg-[var(--kalani-coastal-stone)];
+}
+.bg-kalani-mist {
+    @apply bg-[var(--kalani-coastal-mist)];
+}
+.bg-kalani-ash {
+    @apply bg-[var(--kalani-coastal-ash)];
+}
+.bg-kalani-shell {
+    @apply bg-[var(--kalani-coastal-shell)];
 }
 
-@font-face {
-    font-family: 'SBAggro';
-    src: url('./assets/fonts/SBAggroM.woff2') format('woff2');
-    font-weight: 500;
+/* 텍스트 색상 (Text Colors) */
+.text-kalani-creme {
+    @apply text-[var(--kalani-coastal-creme)];
+}
+.text-kalani-ash {
+    @apply text-[var(--kalani-coastal-ash)];
+}
+.text-kalani-taupe {
+    @apply text-[var(--kalani-coastal-taupe)];
+}
+.text-kalani-gold {
+    @apply text-[var(--kalani-coastal-gold)];
 }
 
-@font-face {
-    font-family: 'SBAggro';
-    src: url('./assets/fonts/SBAggroB.woff2') format('woff2');
-    font-weight: 700;
+/* 테두리 색상 (Border Colors) */
+.border-kalani-stone {
+    @apply border-[var(--kalani-coastal-stone)];
+}
+
+/* Hover 효과 예시 */
+.hover\:bg-kalani-ash:hover {
+    @apply bg-[var(--kalani-coastal-ash)];
+}
+.hover\:text-kalani-ash:hover {
+    @apply text-[var(--kalani-coastal-ash)];
 }

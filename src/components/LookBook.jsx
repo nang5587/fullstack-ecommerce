@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
+import clsx from "clsx";
+
 export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
     const [isHovered, setIsHovered] = useState(false);
     const [hasShownOnce, setHasShownOnce] = useState(false); // 한 번 보여줬는지 여부
@@ -14,7 +16,9 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
+                console.log("Observer Entry:", entry);
                 if (entry.isIntersecting && !hasShownOnce) {
+                    console.log(">>> Intersected <<<");
                     // 화면에 처음 등장하면 자동 hover
                     setIsHovered(true);
                     setHasShownOnce(true);
@@ -25,11 +29,12 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
                 }
             },
             {
-                threshold: 1, // 화면의 50% 보이면 트리거
+                threshold: 0.5,
             }
         );
 
         if (containerRef.current) {
+            console.log("Observer set on", containerRef.current);
             observer.observe(containerRef.current);
         }
 
@@ -53,9 +58,12 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
                 <img
                     src={imageSrc}
                     alt="Model"
-                    className={`w-full h-full object-contain transition-transform duration-300 ${isHovered ? "scale-105" : ""
-                        }`}
-                    style={{ filter: "drop-shadow(0 4px 6px rgba(128, 128, 128, 0.5))" }}
+                    className="w-full h-full object-contain transition-transform duration-300 scale-105"
+                    style={{
+                        filter: "drop-shadow(0 4px 6px rgba(128, 128, 128, 0.5))",
+                        willChange: "transform",
+                        zIndex: 10 
+                    }}
                 />
 
                 <div

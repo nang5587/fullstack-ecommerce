@@ -1,13 +1,15 @@
-// tailwind.config.js (v4 환경의 올바른 설정)
-
 /** @type {import('tailwindcss').Config} */
 export default {
-    // content 경로는 그대로 유지합니다.
     content: [
         "./index.html",
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
-    // theme.extend를 사용하여 커스텀 값을 추가합니다.
+    safelist: [
+        "scale-105",
+        "scale-110",
+        "scale-125",
+        "scale-150",
+    ],
     theme: {
         extend: {
             fontFamily: {

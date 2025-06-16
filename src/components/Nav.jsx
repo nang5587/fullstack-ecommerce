@@ -25,10 +25,9 @@ export default function Nav() {
     const navigate = useNavigate();
 
     const handleSearch = (term) => {
-        setSearchTerm(term);
-        navigate(`/products?search=${encodeURIComponent(term)}`);
-        // 여기서 백엔드 요청을 할 수도 있지만,
-        // 일반적으로 검색 결과 페이지에서 받아서 처리하는 경우가 많아요.
+        const trimmedTerm = term.trim();
+        setSearchTerm(trimmedTerm);
+        navigate(`/search?keyword=${encodeURIComponent(trimmedTerm)}`);
     };
 
 
@@ -39,14 +38,14 @@ export default function Nav() {
                     <div className='flex'>
                         <a href="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black">
                             {/* 📢 스토어명 정하기 */}
-                            <h1>NAVER</h1>
-                            <span>STORE</span>
+                            <h1>KALANI</h1>
+                            {/* <span>STORE</span> */}
                         </a>
 
                         {/* 네비 */}
                         {/* 카테고리 아이콘 */}
                         <div className="flex items-center px-10 py-4">
-                            <button className="text-2xl text-gray-700 font-extralight hover:cursor-pointer"
+                            <button className="px-4 py-2 text-2xl text-gray-700 font-extralight hover:cursor-pointer"
                                 onClick={() => setIsCateOpen(true)}>
                                 <BiCategoryAlt />
                             </button>
@@ -112,7 +111,15 @@ export default function Nav() {
                                         {/* 실제 드롭다운 메뉴 */}
                                         <div className="bg-white rounded-md shadow-xl">
                                             <div className="py-1 text-center">
-                                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">로그인</a>
+                                                <button
+                                                    onClick={() => {
+                                                        navigate("/login");
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    로그인
+                                                </button>
                                                 <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</a>
                                                 <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</a>
                                                 <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</a>
