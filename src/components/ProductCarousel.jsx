@@ -18,11 +18,8 @@ export default function ProductCarousel({ title, column }) {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
                 const res = await fetch(`http://${baseUrl}/api/public/${column}`);
                 const data = await res.json();
-                if (Array.isArray(data[column])) {
-                    setProducts(data[column]);
-                } else {
-                    console.warn(`${column}이(가) 배열이 아님:`, data[column]);
-                }
+                const item = column + 'Items';
+                setProducts(data[item]);
             }
             catch (err) {
                 console.error("상품 데이터를 불러오는 데 실패함: ", err);
@@ -43,7 +40,7 @@ export default function ProductCarousel({ title, column }) {
                 slidesPerView="auto"
             >
                 {products.map((product) => (
-                    <SwiperSlide key={product.fullcode} className="!w-[330px] h-auto"> {/* !w-auto: 카드 고유 너비 사용 */}
+                    <SwiperSlide key={product.imgname} className="!w-[330px] h-auto"> {/* !w-auto: 카드 고유 너비 사용 */}
                         <div className="h-full">
                             <ProductCard product={product} />
                         </div>

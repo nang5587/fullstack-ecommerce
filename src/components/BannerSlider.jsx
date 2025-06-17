@@ -5,15 +5,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import './BannerSlider.css';
 
-export default function BannerSlider() {
-    const banners = [
-        '배너0.jpg',
-        '배너1.jpg',
-        '배너2.jpg',
-        '배너3.jpg',
-        '배너4.jpg',
-        '배너5.jpg',
-    ];
+export default function BannerSlider({banners}) {
 
     return (
         <div className="relative w-full" style={{ height: 'calc(100vh - 6rem)' }}>

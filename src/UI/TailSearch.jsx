@@ -3,22 +3,32 @@ import tailSearchIcon from '../assets/TailSearchIcon.svg';
 
 // 훅 목록
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-export default function TailSearch({ onSearch }) {
+export default function TailSearch() {
     const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter" && searchTerm.trim() !== "") {
-            onSearch(searchTerm.trim());
+    const handleSearch = () => {
+        const trimmedTerm = searchTerm.trim();
+        if(trimmedTerm){
+            navigate(`/search?keyword=${encodeURIComponent(trimmedTerm)}`);
             setSearchTerm("");
         }
     }
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter") {
+            handleSearch();
+        }
+    }
+
     return (
         //    'htmlFor' 속성은 아래 input의 'id'와 일치해야 합니다.
         <label
             htmlFor="product-search"
             className="w-full px-3.5 py-2 rounded-md outline outline-gray-200 flex items-center gap-2 cursor-text 
-                    focus-within:outline-blue-500 focus-within:outline-2">
+                    focus-within:outline-kalani-gold focus-within:outline-2">
             <div className="flex-shrink-0">
                 <img src={tailSearchIcon} alt="Search Icon" className="w-5 h-5" />
             </div>

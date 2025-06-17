@@ -6,17 +6,21 @@ export default function TailButton({ children, color, onClick, disabled }) {
         "white": "bg-white text-gray-600 font-bold border border-gray-300",
         "ash": "bg-kalani-ash text-kalani-creme font-bold",
         "google": "bg-white text-kalani-ash font-bold border border-kalani-stone",
+        "selGhost": "bg-white text-kalani-ash font-bold border border-gray-200",
         "naver": "bg-[#03C75A] text-white font-bold",
         "ghost": "bg-transparent border border-kalani-ash text-kalani-ash",
         "mist": "bg-kalani-mist text-kalani-ash font-bold border border-kalani-ash",
+        "navy": "bg-kalani-navy text-white font-bold",
     }
     const bgHover = {
         "black": "hover:bg-blue-500 text-white",
         "black2": "hover:bg-gray-700 text-white",
         "ash": "hover:opacity-90",
-        "google": "hover:bg-kalani-shell",
+        "google": "hover:bg-gray-200",
+        "selGhost": "hover:bg-gray-200",
         "naver": "hover:opacity-90",
-        "ghost": "hover:bg-kalani-shell",
+        "ghost": "hover:bg-gray-200",
+        "navy": "hover:opacity-80",
     }
     return (
         <button

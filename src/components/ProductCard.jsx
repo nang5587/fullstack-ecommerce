@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 
 export default function ProductCard({ product }) {
     const productCode = product.imgname;
@@ -6,7 +7,7 @@ export default function ProductCard({ product }) {
     console.log(typeof product.price);
     return (
         <div className="group w-full flex-shrink-0"> {/* w-64: 너비 고정, flex-shrink-0: 줄어들지 않음 */}
-            <a href="#" className="block">
+            <Link to={`/detail/${productCode}`} className="block">
                 {/* 상품 이미지 영역 */}
                 <div className="w-full aspect-[3/4] overflow-hidden bg-gray-200">
                     <img
@@ -22,7 +23,7 @@ export default function ProductCard({ product }) {
                     <h3 className="text-sm font-medium text-gray-800">{product.productName}</h3>
                     <p className="mt-1 text-base font-semibold text-gray-800">{product.price.toLocaleString('ko-KR')}원</p>
                 </div>
-            </a>
+            </Link>
         </div>
     )
 }

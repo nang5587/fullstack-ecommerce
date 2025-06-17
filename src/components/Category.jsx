@@ -42,11 +42,11 @@ export default function Category({ isCateOpen, onClose }) {
             <div className="flex min-h-screen overflow-y-auto w-full">
 
                 {/* 대분류 */}
-                <div className="w-48 bg-gray-10 flex flex-col bg-kalani-ash">
+                <div className="w-48 bg-kalani-beige flex flex-col">
                     {category.map((cate) => (
                         <button
                             key={cate.main}
-                            className={`text-sm text-gray-700 text-left p-4 ${selectMain === cate.main
+                            className={`text-sm font-bold text-kalani-navy text-left p-4 ${selectMain === cate.main
                                 ? "bg-white"
                                 : "hover:bg-white"
                                 }`}
@@ -64,7 +64,7 @@ export default function Category({ isCateOpen, onClose }) {
                 <ul className="w-48 p-4 space-y-2 overflow-y-auto">
                     <li>
                         <div
-                            className="cursor-pointer p-2 text-sm font-bold text-gray-800 hover:text-blue-500"
+                            className="cursor-pointer p-2 text-sm font-bold text-gray-800 hover:text-kalani-navy"
                             onClick={() => {
                                 navigate(`/products?main=${selectMain}`);
                                 onClose();
@@ -79,7 +79,7 @@ export default function Category({ isCateOpen, onClose }) {
                             onMouseEnter={() => setHoverMid(idx)}
                             onMouseLeave={() => setHoverMid(null)}
                         >
-                            <div className="cursor-pointer p-2 text-sm"
+                            <div className="cursor-pointer p-2 text-sm hover:text-kalani-navy"
                                 onClick={() => {
                                     navigate(`/products?main=${selectMain}&mid=${mid.mid}`);
                                     onClose();
@@ -89,10 +89,10 @@ export default function Category({ isCateOpen, onClose }) {
                             </div>
                             {/* 드롭다운 */}
                             {hoveredMid === idx && (
-                                <ul className="mt-1 ml-2 bg-kalani-ash p-3 shadow-inner space-y-1">
+                                <ul className="mt-1 ml-2 p-3 shadow-inner space-y-1">
                                     {mid.detailList.map((sub, i) => (
                                         <li key={i}
-                                            className="pb-2 pl-2 text-sm text-gray-700 hover:text-blue-500 cursor-pointer"
+                                            className="pb-2 pl-2 text-sm cursor-pointer bg-kalani-beige text-kalani-navy"
                                             onClick={() => {
                                                 navigate(`/products?main=${selectMain}&mid=${mid.mid}&sub=${sub}`);
                                                 onClose();

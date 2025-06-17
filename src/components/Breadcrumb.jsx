@@ -8,29 +8,45 @@ export default function Breadcrumb({ filters, keyword }) {
         return categoryKR[key] || key;
     };
 
+    const hasMain = filters.main && filters.main.length > 0;
     const hasMid = Array.isArray(filters.mid) && filters.mid.length > 0;
     const hasSub = Array.isArray(filters.sub) && filters.sub.length > 0;
+
+    const lastActiveCategory = hasSub ? 'sub' : hasMid ? 'mid' : 'main';
 
     return (
         <div className="mb-4 text-sm text-gray-700">
             {keyword ? (
                 <p className="text-2xl font-medium pb-4 border-b border-gray-300">
-                    <span className="text-black font-semibold">"{keyword}"</span>에 대한 검색 결과
+                    <span className="text-kalani-gold font-bold">"{keyword}"</span>
+                    <span className="text-black">에 대한 검색 결과</span>
                 </p>
             ) : (
                 <p className="text-2xl font-bold pb-4 border-b border-gray-300">
-                    {filters.main && <span>{translate(filters.main)}</span>}
-                    {hasMid && (
-                        <span className="text-black">
-                            &nbsp;&gt;&nbsp;
-                            {translate(filters.mid)}
+                    {hasMain && (
+                        <span className={lastActiveCategory === 'main' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                            {translate(filters.main)}
                         </span>
                     )}
+                    {hasMid && (
+                        <>
+                            <span className="text-kalani-gold"> &gt; </span>
+                            {/* 마지막 활성 카테고리가 'mid'일 때만 강조색 적용 */}
+                            <span className={lastActiveCategory === 'mid' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                                {translate(filters.mid)}
+                            </span>
+                        </>
+                    )}
+
+                    {/* 3. 소분류 */}
                     {hasSub && (
-                        <span className="text-black">
-                            &nbsp;&gt;&nbsp;
-                            {translate(filters.sub)}
-                        </span>
+                        <>
+                            <span className="text-kalani-gold"> &gt; </span>
+                            {/* 마지막 활성 카테고리가 'sub'일 때만 강조색 적용 (사실상 항상 적용됨) */}
+                            <span className={lastActiveCategory === 'sub' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                                {translate(filters.sub)}
+                            </span>
+                        </>
                     )}
                 </p>
             )}

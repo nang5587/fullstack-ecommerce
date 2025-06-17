@@ -28,155 +28,88 @@ const mainCategories = ['top', 'bottom', 'underwear', 'acc', 'kids', 'swimwear',
 const MIN_PRICE = 0;
 const MAX_PRICE = 50000;
 
-export default function SidebarFilters({ filters, setFilters, keyword, sortOrder }) {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const isInitail = useRef(true);
-    const [localPrice, setLocalPrice] = useState([
-        filters.minPrice || MIN_PRICE,
-        filters.maxPrice || MAX_PRICE
-    ]);
+export default function SidebarFilters({ filters, onFilterChange, keyword }) {
+    const [localPrice, setLocalPrice] = useState([filters.minPrice, filters.maxPrice]);
 
     // [추가] 외부 filters 상태(예: URL 파싱 결과)가 바뀌면 로컬 슬라이더 상태도 동기화함
     useEffect(() => {
         setLocalPrice([
-            filters.minPrice || MIN_PRICE,
-            filters.maxPrice || MAX_PRICE
+            filters.minPrice,
+            filters.maxPrice
         ]);
     }, [filters.minPrice, filters.maxPrice]);
 
-    const safeArray = (arr) => Array.isArray(arr) ? arr : arr ? [arr] : [];
-
-    // 이 useEffect는 상태(filters)가 바뀔 때마다 URL을 업데이트 (State -> URL)
-    useEffect(() => {
-        if (isInitail.current) {
-            isInitail.current = false;
-            return;
-        }
-
-        const searchParams = new URLSearchParams();
-        if (keyword) {
-            searchParams.set('keyword', keyword);
-        }
-        if (sortOrder) {
-            searchParams.set('sort', sortOrder);
-        }
-        Object.entries(filters).forEach(([key, value]) => {
-            // 1. 가격 필터 처리: 기본값이 아니고, 유효한 값일 때만 추가
-            if (key === 'minPrice' && value !== null && value !== undefined && value !== MIN_PRICE) {
-                searchParams.set(key, value);
-            }
-            else if (key === 'maxPrice' && value !== null && value !== undefined && value !== MAX_PRICE) {
-                searchParams.set(key, value);
-            }
-            // 2. 대분류(main) 필터 처리: 빈 문자열이 아닐 때만 추가
-            else if (key === 'main' && value) {
-                searchParams.set(key, value);
-            }
-            // 3. 나머지 배열 필터 처리: 배열이 비어있지 않을 때만 추가
-            else if (Array.isArray(value) && value.length > 0) {
-                value.forEach(v => searchParams.append(key, v));
-            }
-        });
-
-        const newSearch = searchParams.toString();
-        const newPath = `${location.pathname}${newSearch ? '?' : ''}${newSearch}`;
-        const currentPath = location.pathname + location.search;
-
-        if (currentPath !== newPath) {
-            navigate(newPath, { replace: true });
-        }
-    }, [filters, location.pathname, navigate, keyword, sortOrder]);
-
-    const handlePriceChange = (value) => {
-        setFilters(prevFilters => ({
-            ...prevFilters,
-            minPrice: value[0],
-            maxPrice: value[1],
-        }));
-    };
-
+    // 체크박스 변경 관리
     const handleCheckbox = (category, option) => {
-        const current = safeArray(filters[category]);
+        const current = Array.isArray(filters[category]) ? filters[category] : [];
         const updated = current.includes(option)
             ? current.filter((item) => item !== option)
             : [...current, option];
 
-        setFilters({
-            ...filters,
-            [category]: updated,
-        });
+        const newFilter = { [category]: updated };
+
+        // [수정] 만약 변경된 카테고리가 '중분류(mid)'라면, '소분류(sub)'를 초기화합니다.
+        if (category === 'mid') {
+            newFilter.sub = []; // 소분류 선택을 빈 배열로 초기화
+        }
+
+        onFilterChange(newFilter);
     };
 
-    const handleRadio = (category, value) => {
-        if (filters[category] === value) return;
+    // 대분류 변경 처리
+    const handleMainCategory = (main) => {
+        const newMain = filters.main === main ? '' : main;
+        // [핵심 2] 대분류를 바꾸면, 중분류와 소분류를 초기화하라는 정보를 함께 보냅니다.
+        onFilterChange({ main: newMain, mid: [], sub: [] });
+    };
 
-        if (category === 'main') {
-            const newMids = Object.keys(categoryTree[value] || {});
-            const filteredMids = safeArray(filters.mid).filter((mid) => newMids.includes(mid));
-
-            setFilters({
-                ...filters,
-                main: value,
-                mid: filteredMids,
-                sub: [],
-            });
-        } else {
-            setFilters({
-                ...filters,
-                [category]: value,
-            });
-        }
+    // 가격 슬라이더 변경 처리
+    const handlePriceChangeComplete = (value) => {
+        // [핵심 3] 가격 변경 시, minPrice와 maxPrice를 한 객체에 담아 보냅니다.
+        onFilterChange({ minPrice: value[0], maxPrice: value[1] });
     };
 
     const selectedMain = filters.main;
     const mids = selectedMain ? Object.keys(categoryTree[selectedMain] || {}) : [];
-    const subs = selectedMain && filters.mid
+    const subs = selectedMain && Array.isArray(filters.mid)
         ? filters.mid.flatMap((mid) => categoryTree[selectedMain]?.[mid] || [])
         : [];
-
     const filteredGenderOptions = selectedMain === 'skirts_dress' ? ['f'] : genderOptions;
 
     const renderCheckboxGroup = (title, category, options) => {
-        const selectedValues = safeArray(filters[category]);
+        const selectedValues = Array.isArray(filters[category]) ? filters[category] : [];
 
         return (
             <div className="mb-4">
-                <h3 className="font-semibold mb-4">{title}</h3>
+                <h3 className="font-semibold mb-4 text-kalani-navy">{title}</h3>
                 {category === "color" ? (
                     <div className="grid grid-cols-6 place-items-center gap-1">
-                        {options.map((option) => {
-                            const isChecked = selectedValues.includes(option);
-                            return (
+                        {options.map((option) => (
                                 <label key={option} className="cursor-pointer w-8 h-8 flex items-center justify-center">
                                     <input
                                         type="checkbox"
-                                        checked={isChecked}
+                                        checked={selectedValues.includes(option)}
                                         onChange={() => handleCheckbox(category, option)}
                                         className="form-checkbox hidden"
                                     />
-                                    <ColorSwatch colorCode={colorMap[option]} label={option} selected={isChecked} />
+                                    <ColorSwatch colorCode={colorMap[option]} label={option} selected={selectedValues.includes(option)} />
                                 </label>
-                            );
-                        })}
+                        ))}
                     </div>
                 ) : (
-                    options.map((option) => {
-                        const isChecked = selectedValues.includes(option);
-                        return (
+                    options.map((option) => (
                             <label key={option} className="flex items-center gap-2 cursor-pointer">
                                 <input
                                     type="checkbox"
-                                    checked={isChecked}
+                                    checked={selectedValues.includes(option)}
                                     onChange={() => handleCheckbox(category, option)}
                                     className="form-checkbox"
                                 />
-                                <span className={`transition-colors ${isChecked ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
+                                <span className={`transition-colors ${selectedValues.includes(option) ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
                                     {categoryKR[option] || option}
                                 </span>
                             </label>
-                        );
-                    })
+                    ))
                 )}
             </div>
         );
@@ -187,12 +120,12 @@ export default function SidebarFilters({ filters, setFilters, keyword, sortOrder
             <Breadcrumb filters={filters} keyword={keyword} />
 
             <div className="mb-4">
-                <h3 className="font-semibold mb-4">대분류</h3>
+                <h3 className="font-semibold mb-4 text-kalani-navy">대분류</h3>
                 <div className="space-y-1">
                     {mainCategories.map((main) => (
                         <div
                             key={main}
-                            onClick={() => handleRadio('main', main)}
+                            onClick={() => handleMainCategory(main)}
                             className={`cursor-pointer px-1 py-0.5 ${filters.main === main ? 'text-gray-700 font-semibold' : 'text-gray-400'}`}
                         >
                             {categoryKR[main] || main}
@@ -218,7 +151,8 @@ export default function SidebarFilters({ filters, setFilters, keyword, sortOrder
             <hr className="border-t border-gray-300 my-6" />
             {renderCheckboxGroup("무늬", "print", patternOptions)}
             <hr className="border-t border-gray-300 my-6" />
-            <div className="mb-4 px-1">
+
+            <div className="mb-12 px-1">
                 <h3 className="font-semibold mb-4">가격</h3>
                 <Slider
                     range // 두 개의 핸들을 가진 범위 슬라이더로 설정
@@ -227,14 +161,16 @@ export default function SidebarFilters({ filters, setFilters, keyword, sortOrder
                     step={1000} // 1000원 단위로 움직이도록 설정
                     value={localPrice} // 슬라이더의 현재 값 (로컬 상태와 연결)
                     onChange={setLocalPrice} // 드래그하는 동안 로컬 상태만 업데이트 (UI 즉시 반영)
-                    onChangeComplete={handlePriceChange} // 드래그가 끝났을 때만 부모 상태 업데이트
+                    onChangeComplete={handlePriceChangeComplete} // 드래그가 끝났을 때만 부모 상태 업데이트
                     styles={{
-                        track: { backgroundColor: 'black' },
+                        track: { backgroundColor: 'var(--kalani-coastal-navy)' },
                         handle: {
-                            borderColor: 'black',
+                            borderColor: 'var(--kalani-coastal-navy)', // 'black' 대신 CSS 변수 사용
                             borderWidth: 2,
                             backgroundColor: 'white',
-                            opacity: 1 // 핸들이 항상 보이도록 설정
+                            opacity: 1,
+                            // 포커스/활성 상태일 때의 그림자(glow) 색상도 변경
+                            boxShadow: '0 0 0 5px rgba(15, 44, 89, 0.2)' // --kalani-coastal-navy (#0F2C59)의 투명도 버전
                         },
                         rail: { backgroundColor: '#E5E7EB' }
                     }} // 전체 트랙 스타일

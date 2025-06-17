@@ -1,153 +1,139 @@
-// 훅 목록
-import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
-
-// component 목록
-import ProductCard from './ProductCard';
-import SidebarFilters from './SidebarFilter';
+import SidebarFilters from "./SidebarFilter";
+import ProductCard from "./ProductCard";
 import SortMenu from './SortMenu';
+import { useEffect, useState, } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-// 가격 최대와 최소
 const MIN_PRICE = 0;
 const MAX_PRICE = 50000;
 
 export default function Listing() {
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [products, setProducts] = useState([]);
+    const [allProducts, setAllProducts] = useState([]); // 백엔드에서 받은 전체 상품
+    const [displayedProducts, setDisplayedProducts] = useState([]); // 화면에 보여줄 상품
     const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [filters, setFilters] = useState({
-        gender: [],
-        pattern: [], // 'print'를 사용하고 계셨다면 'pattern'으로 통일해주세요.
-        color: [],
-        mid: [],
-        sub: [],
-        main: '',
-        minPrice: MIN_PRICE,
-        maxPrice: MAX_PRICE,
-    });
+    const [isLoading, setIsLoading] = useState(false);
+
     const location = useLocation();
+    const navigate = useNavigate();
 
+    const PRODUCTS_PER_PAGE = 20;
+
+    // [핵심 수정 1] URL이 변경될 때만 데이터를 가져오는 단일 useEffect
     useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const sortFromUrl = params.get('sort');
-        if (sortFromUrl) {
-            setSortOrder(sortFromUrl);
-        }
-        const newFilters = {};
+        const fetchProducts = async () => {
+            setIsLoading(true);
+            setAllProducts([]); // 새로운 필터링 시 기존 데이터 초기화
+            setDisplayedProducts([]);
+            setPage(1);
 
-        // URL 파라미터를 객체로 변환
-        for (const [key, value] of params.entries()) {
-            if (newFilters[key]) {
-                // 이미 키가 있으면 배열로 만듦
-                newFilters[key] = Array.isArray(newFilters[key])
-                    ? [...newFilters[key], value]
-                    : [newFilters[key], value];
-            } else {
-                newFilters[key] = value;
+            // API 요청을 위한 파라미터 준비
+            const queryParams = new URLSearchParams(location.search);
+            queryParams.delete('page');
+            queryParams.delete('limit');
+
+            try {
+                const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await fetch(`http://${baseUrl}/api/public/category/goods?${queryParams.toString()}`);
+                const data = await res.json();
+                setAllProducts(data || []);
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+                setAllProducts([]);
+            } finally {
+                setIsLoading(false);
             }
-        }
-
-        // SidebarFilters의 형식에 맞게 데이터를 정규화 (매우 중요!)
-        const safeArray = (arr) => Array.isArray(arr) ? arr : arr ? [arr] : [];
-        const normalized = {
-            gender: safeArray(newFilters.gender),
-            print: safeArray(newFilters.print),
-            color: safeArray(newFilters.color),
-            mid: safeArray(newFilters.mid),
-            sub: safeArray(newFilters.sub),
-            main: newFilters.main || '', // main은 문자열로 처리
-
-            minPrice: newFilters.minPrice ? parseInt(newFilters.minPrice, 10) : MIN_PRICE,
-            maxPrice: newFilters.maxPrice ? parseInt(newFilters.maxPrice, 10) : MAX_PRICE,
         };
 
-        // [개선] 상태가 실제로 바뀌었을 때만 업데이트하여 무한 루프 방지
-        if (JSON.stringify(normalized) !== JSON.stringify(filters)) {
-            setFilters(normalized);
-            setPage(1); // 새 필터면 페이지 초기화
-        }
+        fetchProducts();
     }, [location.search]);
 
+    // 보여줄 상품을 업데이트하는 useEffect
+    useEffect(() => {
+        // 전체 상품 목록에서 현재 페이지에 해당하는 부분만 잘라냅니다.
+        const newDisplayedProducts = allProducts.slice(0, page * PRODUCTS_PER_PAGE);
+        setDisplayedProducts(newDisplayedProducts);
+    }, [allProducts, page]);
 
-    const fetchProducts = async (pageToFetch, shouldAppend) => {
-        const params = new URLSearchParams({
-            page: pageToFetch,
-            limit: 20,
-            sort: sortOrder,
-        });
 
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value === null || value === undefined) return;
-            if (key === 'main' && value) {
-                params.set(key, value);
-            } else if ((key === 'minPrice' && value !== MIN_PRICE) || (key === 'maxPrice' && value !== MAX_PRICE)) {
-                // 가격 필터는 기본값이 아닐 때만 파라미터에 추가합니다.
-                params.set(key, value);
-            } else if (Array.isArray(value) && value.length > 0) {
-                value.forEach((v) => params.append(key, v));
+    const currentParams = new URLSearchParams(location.search);
+    const filters = {
+        gender: currentParams.getAll('gender'),
+        print: currentParams.getAll('print'),
+        color: currentParams.getAll('color'),
+        mid: currentParams.getAll('mid'),
+        sub: currentParams.getAll('sub'),
+        main: currentParams.get('main') || '',
+        minPrice: currentParams.get('minPrice') ? parseInt(currentParams.get('minPrice'), 10) : MIN_PRICE,
+        maxPrice: currentParams.get('maxPrice') ? parseInt(currentParams.get('maxPrice'), 10) : MAX_PRICE,
+    };
+    const sortOrder = currentParams.get('sort') || 'newest';
+    const hasMore = displayedProducts.length < allProducts.length;
+
+    // 핸들러 함수들
+    const handleFilterChange = (changedParams) => {
+        const currentParams = new URLSearchParams(location.search);
+
+        Object.entries(changedParams).forEach(([key, value]) => {
+            currentParams.delete(key);
+
+            // 수정된 조건: 숫자 0도 통과시키도록 체크
+            const isValidValue =
+                Array.isArray(value) ? value.length > 0 :
+                    value !== undefined && value !== null && value !== '';
+
+            if (isValidValue) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => currentParams.append(key, v));
+                } else {
+                    currentParams.set(key, value.toString());
+                }
             }
         });
 
-        const baseUrl = import.meta.env.VITE_BACKEND_URL;
-        const res = await fetch(`http://${baseUrl}/api/public/category/goods?${params.toString()}`);
-        const data = await res.json();
-        console.log("백엔드 응답:", data);
-
-        const productsArray = data || [];
-        setHasMore(productsArray.length === 20);
-        if (shouldAppend) {
-            setProducts(prevProducts => [...prevProducts, ...productsArray]);
-        } else {
-            setProducts(productsArray);
-        }
+        currentParams.set('page', '1');
+        navigate(`${location.pathname}?${currentParams.toString()}`);
     };
-    // 필터나 정렬이 바뀔 때 실행되는 useEffect (이 훅은 항상 1페이지부터 데이터를 새로 불러옴)
-    useEffect(() => {
-        setPage(1); // 페이지 번호를 1로 리셋
-        setHasMore(true); // '더 보기' 버튼이 다시 보이도록 리셋
-        fetchProducts(1, false); // 1페이지 데이터를 새로(append: false) 불러옴
-    }, [filters, sortOrder]);
 
-    // 페이지 번호가 바뀔 때(더 보기 클릭) 실행되는 useEffect (이 훅은 1페이지 이후의 데이터를 불러와서 기존 목록에 추가)
-    useEffect(() => {
-        if (page > 1) {
-            fetchProducts(page, true); // 현재 페이지(2, 3, ...) 데이터를 추가(append: true)
-        }
-    }, [page]);
+    const handleSortChange = (newSort) => {
+        const currentParams = new URLSearchParams(location.search);
+        currentParams.set('sort', newSort.sort);
+        currentParams.set('page', '1');
+        navigate(`${location.pathname}?${currentParams.toString()}`);
+    };
 
-    const loadData = () => {
-        const morePage = page + 1;
-        setPage(morePage);
-    }
+    // '더 보기' 버튼 클릭 핸들러
+    const loadMore = () => {
+        // 단순히 페이지 번호만 1 증가시킵니다.
+        setPage(prevPage => prevPage + 1);
+    };
 
     return (
         <div className="flex px-8 py-6 gap-10 min-h-screen">
-
-            <SidebarFilters filters={filters} setFilters={setFilters} sortOrder={sortOrder} />
-
+            <SidebarFilters filters={filters} onFilterChange={handleFilterChange} />
             <main className="flex-1">
-                <SortMenu sortOrder={sortOrder} setSortOrder={setSortOrder} />
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 
-                                gap-x-4 sm:gap-x-6 md:gap-x-8 lg:gap-x-10 xl:gap-x-16
-                                gap-y-6 sm:gap-y-8 md:gap-y-10 lg:gap-y-12 xl:gap-y-20
-                                w-full mt-16 px-4">
-                    {Array.isArray(products) && products.map(product => (
-                        <ProductCard key={product.fullcode} product={product} />
+                <SortMenu sortOrder={sortOrder} onSortChange={handleSortChange} />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 
+                                gap-x-6 sm:gap-x-8 
+                                gap-y-10 sm:gap-y-12">
+                    {/* 로딩 및 결과 없음 UI */}
+                    {isLoading && displayedProducts.length === 0 && <div className="col-span-full ...">로딩 중...</div>}
+                    {!isLoading && displayedProducts.length === 0 && <div className="col-span-full ...">상품이 없습니다.</div>}
+
+                    {displayedProducts.map(product => (
+                        <ProductCard key={product.imgname || product.fullcode} product={product} />
                     ))}
                 </div>
 
-                {hasMore && (
-                    <div className="text-center mt-8">
-                        <button
-                            onClick={loadData}
-                            className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800"
-                        >
+                {hasMore && !isLoading && (
+                    <div className="text-center mt-12">
+                        <button onClick={loadMore} className="px-8 py-3 bg-kalani-navy text-white font-bold rounded shadow-md hover:opacity-80 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed">
                             더 보기
                         </button>
                     </div>
                 )}
+                {isLoading && displayedProducts.length > 0 && <div className="text-center mt-12 text-gray-500 font-semibold animate-pulse">로딩 중...</div>}
             </main>
         </div>
-    )
+    );
 }

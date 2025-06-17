@@ -12,8 +12,11 @@ import Home from "./components/Home";
 import Listing from "./components/Listing";
 import SearchListing from './components/SearchListing';
 import Detail from "./components/Detail";
+import AdPage from './components/AdPage';
+import CartPage from './components/CartPage';
 import Login from "./components/Login";
 import ColorPaletteTest from './components/ColorPaletteTest';
+import ModelViewer from './components/ModelViewer';
 
 function App() {
   return (
@@ -28,9 +31,12 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Listing />} />
             <Route path="/search" element={<SearchListing />} />
-            <Route path="/detail" element={<Detail />} />
+            <Route path="/detail/:productId" element={<Detail />} />
+            <Route path="/promotion/:productId" element={<AdPage />} />
+            <Route path="/cart" element={<CartPage />} />
             <Route path="/login" element={<Login />} />
             <Route path="/test" element={<ColorPaletteTest />} />
+            <Route path="/3d" element={<ModelViewer />} />
           </Routes>
         </main>
 

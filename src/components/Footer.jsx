@@ -6,7 +6,7 @@ export default function Footer() {
             <div className="w-full flex flex-col bg-white border-t border-zinc-200">
                 <div className="flex justify-between px-10 py-10">
                     <div>
-                        <a href="/" id="font" className="flex flex-row items-baseline gap-2 flex-shrink-0 text-3xl text-black">
+                        <a href="/" id="font" className="flex flex-row items-baseline gap-2 flex-shrink-0 text-3xl text-black hover:text-kalani-gold">
                             {/* 📢 스토어명 정하기 */}
                             <h1>KALANI</h1>
                             {/* <span>STORE</span> */}

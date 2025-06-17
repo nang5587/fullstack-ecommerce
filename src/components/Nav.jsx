@@ -11,7 +11,7 @@ import { BiCategoryAlt } from "react-icons/bi";
 
 // 훅 목록
 import { useEffect, useState } from 'react';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 export default function Nav() {
     // user 아이콘의 드롭다운 상태 관리 변수 선언
@@ -36,16 +36,16 @@ export default function Nav() {
             <div className="relative z-30 bg-white p-4">
                 <div className='flex items-center justify-between px-10 gap-8'>
                     <div className='flex'>
-                        <a href="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black">
+                        <Link to="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black hover:text-kalani-gold">
                             {/* 📢 스토어명 정하기 */}
                             <h1>KALANI</h1>
                             {/* <span>STORE</span> */}
-                        </a>
+                        </Link>
 
                         {/* 네비 */}
                         {/* 카테고리 아이콘 */}
                         <div className="flex items-center px-10 py-4">
-                            <button className="px-4 py-2 text-2xl text-gray-700 font-extralight hover:cursor-pointer"
+                            <button className="px-4 py-2 text-2xl text-gray-700 hover:text-kalani-gold font-extralight hover:cursor-pointer"
                                 onClick={() => setIsCateOpen(true)}>
                                 <BiCategoryAlt />
                             </button>
@@ -54,7 +54,7 @@ export default function Nav() {
                                     navigate("/products?gender=f");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer hover:text-kalani-gold"
                             >
                                 WOMAN
                             </button>
@@ -63,7 +63,7 @@ export default function Nav() {
                                     navigate("/products?gender=m");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer hover:text-kalani-gold"
                             >
                                 MAN
                             </button>
@@ -72,7 +72,7 @@ export default function Nav() {
                                     navigate("/products?main=kids");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer hover:text-kalani-gold"
                             >
                                 KIDS
                             </button>
@@ -81,7 +81,7 @@ export default function Nav() {
                                     navigate("/products?main=acc");
                                     setIsCateOpen(false);
                                 }}
-                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer"
+                                className="px-4 py-2 text-sm text-gray-700 font-bold hover:cursor-pointer hover:text-kalani-gold"
                             >
                                 ACC
                             </button>
@@ -90,17 +90,17 @@ export default function Nav() {
 
                     <div className="flex items-center gap-5">
                         <div className="w-full max-w-xs min-w-xs">
-                            <TailSearch onSearch={handleSearch} />
+                            <TailSearch />
                         </div>
 
                         {/* 아이콘 그룹 */}
                         <div className="flex items-center text-2xl text-gray-700 gap-6">
-                            <a href="#" className="hover:text-blue-500 block cursor-pointer"><RiShoppingBagLine /></a>
+                            <Link to="/cart" className="hover:text-kalani-gold block cursor-pointer"><RiShoppingBagLine /></Link>
                             <div className="relative" onMouseEnter={() => setIsDropdownOpen(true)} onMouseLeave={() => setIsDropdownOpen(false)}>
                                 {/* 사용자 아이콘 */}
-                                <a href="#" className="hover:text-blue-500 block cursor-pointer">
+                                <Link to="#" className="hover:text-kalani-gold block cursor-pointer">
                                     <FiUser />
-                                </a>
+                                </Link>
 
                                 {/* 이게 핵심: hover 가능한 '버퍼' 공간을 추가 */}
                                 {isDropdownOpen && (
@@ -120,10 +120,10 @@ export default function Nav() {
                                                 >
                                                     로그인
                                                 </button>
-                                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</a>
-                                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</a>
-                                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</a>
-                                                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">고객센터</a>
+                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link>
+                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</Link>
+                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</Link>
+                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">고객센터</Link>
                                                 {/* <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">로그아웃</a> */}
                                             </div>
                                         </div>

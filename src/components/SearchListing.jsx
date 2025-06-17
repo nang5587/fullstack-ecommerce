@@ -1,170 +1,185 @@
-// component 목록
 import SidebarFilters from "./SidebarFilter"
 import ProductCard from "./ProductCard";
 import SortMenu from './SortMenu';
 
-// 훅 목록
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
-// 가격 최대와 최소
 const MIN_PRICE = 0;
 const MAX_PRICE = 50000;
 
 export default function SearchListing() {
-    const [sortOrder, setSortOrder] = useState('newest');
-    const [products, setProducts] = useState([]);
+    const [displayedProducts, setDisplayedProducts] = useState([]);
     const [page, setPage] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
-    const [keyword, setKeyword] = useState(''); // [추가] 검색어 상태
-    const [filters, setFilters] = useState({
-        gender: [],
-        pattern: [],
-        color: [],
-        mid: [],
-        sub: [],
-        main: '',
-        minPrice: MIN_PRICE,
-        maxPrice: MAX_PRICE,
-    });
+
     const location = useLocation();
+    const navigate = useNavigate();
 
-    // 이 useEffect는 Listing.jsx와 거의 동일합니다.
-    // URL이 바뀔 때마다 keyword와 filters를 상태에 설정합니다.
+    const PRODUCTS_PER_PAGE = 20;
+
+    const currentParams = new URLSearchParams(location.search);
+    const keyword = currentParams.get('keyword') || '';
+    const filters = {
+        gender: currentParams.getAll('gender'),
+        print: currentParams.getAll('print'),
+        color: currentParams.getAll('color'),
+        mid: currentParams.getAll('mid'),
+        sub: currentParams.getAll('sub'),
+        main: currentParams.get('main') || '',
+        minPrice: currentParams.get('minPrice') ? parseInt(currentParams.get('minPrice'), 10) : MIN_PRICE,
+        maxPrice: currentParams.get('maxPrice') ? parseInt(currentParams.get('maxPrice'), 10) : MAX_PRICE,
+    };
+    const sortOrder = currentParams.get('sort') || 'newest';
+
+    // 검색어, 필터, 정렬이 바뀌면 페이지 초기화 + 상품 초기화 + hasMore 초기화
     useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const sortFromUrl = params.get('sort');
-        if (sortFromUrl) {
-            setSortOrder(sortFromUrl);
-        }
-        // [추가] URL에서 keyword를 추출합니다.
-        setKeyword(params.get('keyword') || '');
-
-        // 이하 로직은 Listing.jsx와 완전히 동일합니다.
-        const newFilters = {};
-        for (const [key, value] of params.entries()) {
-            if (key === 'keyword') continue; // keyword는 별도로 처리하므로 건너뜁니다.
-            if (newFilters[key]) {
-                newFilters[key] = Array.isArray(newFilters[key])
-                    ? [...newFilters[key], value]
-                    : [newFilters[key], value];
-            } else {
-                newFilters[key] = value;
-            }
-        }
-
-        const safeArray = (arr) => Array.isArray(arr) ? arr : arr ? [arr] : [];
-
-        const normalized = {
-            gender: safeArray(newFilters.gender),
-            print: safeArray(newFilters.print),
-            color: safeArray(newFilters.color),
-            mid: safeArray(newFilters.mid),
-            sub: safeArray(newFilters.sub),
-            main: newFilters.main || '',
-            minPrice: newFilters.minPrice ? parseInt(newFilters.minPrice, 10) : MIN_PRICE,
-            maxPrice: newFilters.maxPrice ? parseInt(newFilters.maxPrice, 10) : MAX_PRICE,
-        };
-
-        // [수정] 상태 업데이트는 실제로 변경되었을 때만 수행하도록 변경 (무한 루프 방지)
-        if (JSON.stringify(normalized) !== JSON.stringify(filters)) {
-            setFilters(normalized);
-        }
-        setPage(1); // URL이 바뀌면 항상 1페이지부터 시작
+        setPage(1);
+        setDisplayedProducts([]);
+        setHasMore(true);
     }, [location.search]);
 
+    // 페이지 또는 필터 변경 시 상품 불러오기
+    useEffect(() => {
+        // keyword 없으면 fetch 하지 말자
+        if (!keyword) {
+            setIsLoading(false);
+            setDisplayedProducts([]);
+            setHasMore(false);
+            return;
+        }
 
-    const fetchProducts = async (pageToFetch, shouldAppend) => {
-        // [수정] API 요청에 keyword를 추가해야 합니다.
-        if (!keyword) return; // 검색어가 없으면 요청하지 않음
+        const fetchProducts = async () => {
+            setIsLoading(true);
 
-        const params = new URLSearchParams({
-            keyword: keyword, // [추가] 검색어 파라미터
-            page: pageToFetch,
-            limit: 20,
-            sort: sortOrder,
-        });
+            try {
+                const queryParams = new URLSearchParams(location.search);
+                queryParams.set('page', page);
+                queryParams.set('limit', PRODUCTS_PER_PAGE);
 
-        // 이하 필터 파라미터 추가 로직은 Listing.jsx와 동일합니다.
-        Object.entries(filters).forEach(([key, value]) => {
-            if (value === null || value === undefined) return;
-            if (key === 'main' && value) {
-                params.set(key, value);
-            } else if ((key === 'minPrice' && value !== MIN_PRICE) || (key === 'maxPrice' && value !== MAX_PRICE)) {
-                params.set(key, value);
-            } else if (Array.isArray(value) && value.length > 0) {
-                value.forEach((v) => params.append(key, v));
+                const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await fetch(`http://${baseUrl}/api/public/search?${queryParams.toString()}`);
+                const data = await res.json();
+
+                if (page === 1) {
+                    setDisplayedProducts(data);
+                } else {
+                    setDisplayedProducts(prev => [...prev, ...data]);
+                }
+
+                // 데이터 길이가 페이지당 상품 수보다 작으면 더이상 불러올게 없음
+                setHasMore(data.length === PRODUCTS_PER_PAGE);
+
+                // 만약 첫 페이지인데 상품이 하나도 없으면 hasMore도 false로
+                if (page === 1 && data.length === 0) {
+                    setHasMore(false);
+                }
+            } catch (error) {
+                console.error("Failed to fetch products:", error);
+                setHasMore(false);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, [page, location.search, keyword]);
+
+    const handleFilterChange = (changedFilter) => {
+        const currentParams = new URLSearchParams(location.search);
+
+        Object.entries(changedFilter).forEach(([key, value]) => {
+            currentParams.delete(key);
+
+            const isValidValue =
+                Array.isArray(value) ? value.length > 0 :
+                    value !== undefined && value !== null && value !== '';
+
+            if (isValidValue) {
+                if (Array.isArray(value)) {
+                    value.forEach(v => currentParams.append(key, v));
+                } else {
+                    currentParams.set(key, value.toString());
+                }
             }
         });
 
-        const baseUrl = import.meta.env.VITE_BACKEND_URL;
-        const res = await fetch(`http://${baseUrl}/api/public/search?${params.toString()}`);
-        const data = await res.json();
+        if (changedFilter.main !== undefined) {
+            currentParams.delete('mid');
+            currentParams.delete('sub');
+        }
+        if (changedFilter.mid !== undefined) {
+            currentParams.delete('sub');
+        }
 
-        // 이하 로직은 Listing.jsx와 동일
-        const productsArray = data.searchResults || [];
+        currentParams.set('page', '1');
+        navigate(`/search?${currentParams.toString()}`);
+    };
 
-        setHasMore(productsArray.length === 20);
+    const handleSortChange = (newSort) => {
+        const currentParams = new URLSearchParams(location.search);
+        currentParams.set('sort', newSort.sort);
+        currentParams.set('page', '1');
+        navigate(`/search?${currentParams.toString()}`);
+    };
 
-        if (shouldAppend) {
-            setProducts(prevProducts => [...prevProducts, ...productsArray]);
-        } else {
-            setProducts(productsArray);
+    const loadMore = () => {
+        if (!isLoading && hasMore) {
+            setPage(prev => prev + 1);
         }
     };
 
-    // 이 useEffect도 Listing.jsx와 동일합니다.
-    useEffect(() => {
-        if (keyword) {
-            setPage(1); // 페이지 번호를 1로 리셋
-            setHasMore(true); // '더 보기' 버튼이 다시 보이도록 리셋
-            fetchProducts(1, false); // 1페이지 데이터를 새로(append: false) 불러옴
-        } else {
-            setProducts([]); // keyword가 없으면 목록을 비움
-        }
-    }, [filters, keyword, sortOrder]); // [수정] keyword가 바뀔 때도 상품을 다시 불러와야 함
-
-    useEffect(() => {
-        if (page > 1) {
-            fetchProducts(page, true); // 현재 페이지(2, 3, ...) 데이터를 추가(append: true)
-        }
-    }, [page]);
-
-    const loadData = () => {
-        const morePage = page + 1;
-        setPage(morePage);
-    }
-    // loadData, return 문은 Listing.jsx와 완전히 동일합니다.
     return (
         <div className="flex px-8 py-6 gap-10 min-h-screen">
-            <SidebarFilters filters={filters} setFilters={setFilters} keyword={keyword} sortOrder={sortOrder} />
+            {keyword && <SidebarFilters filters={filters} onFilterChange={handleFilterChange} />}
             <main className="flex-1">
-                {products.length > 0 && <SortMenu sortOrder={sortOrder} setSortOrder={setSortOrder} />}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 
-                                                gap-x-4 sm:gap-x-6 md:gap-x-8 lg:gap-x-10 xl:gap-x-16
-                                                gap-y-6 sm:gap-y-8 md:gap-y-10 lg:gap-y-12 xl:gap-y-20
-                                                w-full mt-16 px-4">
-                    {Array.isArray(products) && products.length > 0 ? (
-                        products.map(product => (
-                            <ProductCard key={product.imgname} product={product} />
-                        ))
-
+                <div className="flex justify-between items-center mb-6">
+                    {displayedProducts.length > 0 ? (
+                        <h2 className="text-xl font-semibold">
+                            '{keyword}' 검색 결과 <span className="text-kalani-gold">{displayedProducts.length}</span>개
+                        </h2>
                     ) : (
-                        // [추가] 검색 결과가 없을 때 메시지 표시
-                        !keyword ? null : <p className="p-4 text-base font-bold">검색 결과가 없습니다.</p>
+                        <h2 className="text-xl font-semibold invisible">Placeholder</h2>
                     )}
+                    {displayedProducts.length > 0 && <SortMenu sortOrder={sortOrder} onSortChange={handleSortChange} />}
                 </div>
-                {hasMore && keyword && products.length > 0 && (
-                    <div className="text-center mt-8">
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 
+                                gap-x-6 sm:gap-x-8 
+                                gap-y-10 sm:gap-y-12">
+                    {isLoading && displayedProducts.length === 0 && (
+                        <div className="col-span-full text-center py-20 text-gray-500 font-medium">
+                            검색 중입니다...
+                        </div>
+                    )}
+                    {!isLoading && keyword && displayedProducts.length === 0 && (
+                        <div className="col-span-full text-center py-20 text-gray-500 font-medium">
+                            '{keyword}'에 대한 검색 결과가 없습니다.
+                        </div>
+                    )}
+
+                    {displayedProducts.map(product => (
+                        <ProductCard key={product.imgname || product.fullcode} product={product} />
+                    ))}
+                </div>
+
+                {hasMore && !isLoading && (
+                    <div className="text-center mt-12">
                         <button
-                            onClick={loadData}
-                            className="px-6 py-2 bg-black text-white rounded hover:bg-gray-800"
+                            onClick={loadMore}
+                            className="px-8 py-3 bg-kalani-navy text-white font-semibold rounded-md shadow-md hover:opacity-90 transition-opacity disabled:bg-gray-400"
                         >
                             더 보기
                         </button>
                     </div>
                 )}
 
+                {isLoading && displayedProducts.length > 0 && (
+                    <div className="text-center mt-12 text-gray-500 font-semibold animate-pulse">
+                        상품을 더 가져오고 있습니다...
+                    </div>
+                )}
             </main>
         </div>
     );
