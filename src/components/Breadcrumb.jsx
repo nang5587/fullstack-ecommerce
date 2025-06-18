@@ -16,40 +16,38 @@ export default function Breadcrumb({ filters, keyword }) {
 
     return (
         <div className="mb-4 text-sm text-gray-700">
-            {keyword ? (
-                <p className="text-2xl font-medium pb-4 border-b border-gray-300">
-                    <span className="text-kalani-gold font-bold">"{keyword}"</span>
-                    <span className="text-black">에 대한 검색 결과</span>
-                </p>
-            ) : (
-                <p className="text-2xl font-bold pb-4 border-b border-gray-300">
-                    {hasMain && (
-                        <span className={lastActiveCategory === 'main' ? 'text-kalani-navy' : 'text-kalani-gold'}>
-                            {translate(filters.main)}
+            <p className="text-2xl font-bold pb-4 border-b border-gray-300">
+                {hasMain && (
+                    <span className={lastActiveCategory === 'main' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                        {translate(filters.main)}
+                    </span>
+                )}
+                {hasMid && (
+                    <>
+                        <span className="text-kalani-gold"> &gt; </span>
+                        {/* 마지막 활성 카테고리가 'mid'일 때만 강조색 적용 */}
+                        <span className={lastActiveCategory === 'mid' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                            {translate(filters.mid)}
                         </span>
-                    )}
-                    {hasMid && (
-                        <>
-                            <span className="text-kalani-gold"> &gt; </span>
-                            {/* 마지막 활성 카테고리가 'mid'일 때만 강조색 적용 */}
-                            <span className={lastActiveCategory === 'mid' ? 'text-kalani-navy' : 'text-kalani-gold'}>
-                                {translate(filters.mid)}
-                            </span>
-                        </>
-                    )}
+                    </>
+                )}
 
-                    {/* 3. 소분류 */}
-                    {hasSub && (
-                        <>
-                            <span className="text-kalani-gold"> &gt; </span>
-                            {/* 마지막 활성 카테고리가 'sub'일 때만 강조색 적용 (사실상 항상 적용됨) */}
-                            <span className={lastActiveCategory === 'sub' ? 'text-kalani-navy' : 'text-kalani-gold'}>
-                                {translate(filters.sub)}
-                            </span>
-                        </>
-                    )}
-                </p>
-            )}
+                {/* 3. 소분류 */}
+                {hasSub && (
+                    <>
+                        <span className="text-kalani-gold"> &gt; </span>
+                        {/* 마지막 활성 카테고리가 'sub'일 때만 강조색 적용 (사실상 항상 적용됨) */}
+                        <span className={lastActiveCategory === 'sub' ? 'text-kalani-navy' : 'text-kalani-gold'}>
+                            {translate(filters.sub)}
+                        </span>
+                    </>
+                )}
+                {keyword && (
+                    <span className="px-2 py-1 text-kalani-navy rounded-full text-sm font-medium">
+                        #{keyword}
+                    </span>
+                )}
+            </p>
         </div>
     );
 }

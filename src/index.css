@@ -138,3 +138,30 @@
     /* theme() 함수 대신 실제 색상 값을 사용합니다. */
     border-bottom: 8px solid white;
 }
+
+.img-hovered {
+    transform: scale(1.08);
+    filter: drop-shadow(0 4px 6px rgba(128, 128, 128, 0.5));
+    will-change: transform;
+    z-index: 10;
+    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.img-normal {
+    transform: scale(1);
+    transition: transform 1s cubic-bezier(0.25, 0, 0.25, 1);
+}
+
+@keyframes jelly {
+    0% { transform: scale(1, 1); }
+    25% { transform: scale(1.1, 0.9); }
+    50% { transform: scale(0.9, 1.1); }
+    75% { transform: scale(1.05, 0.95); }
+    100% { transform: scale(1, 1); }
+}
+
+.shadow-nm {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    border-radius: 12px;
+}

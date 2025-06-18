@@ -7,16 +7,20 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // components 목록
 import Nav from "./components/Nav";
-import Footer from "./components/Footer";
 import Home from "./components/Home";
+import Footer from "./components/Footer";
+
 import Listing from "./components/Listing";
 import SearchListing from './components/SearchListing';
-import Detail from "./components/Detail";
+
 import AdPage from './components/AdPage';
+import Detail from "./components/Detail";
 import CartPage from './components/CartPage';
+import SignUp from './components/SignUp';
+import SignUpSuccess from './components/SignUpSuccess';
 import Login from "./components/Login";
+import MyPage from './components/MyPage';
 import ColorPaletteTest from './components/ColorPaletteTest';
-import ModelViewer from './components/ModelViewer';
 
 function App() {
   return (
@@ -34,9 +38,11 @@ function App() {
             <Route path="/detail/:productId" element={<Detail />} />
             <Route path="/promotion/:productId" element={<AdPage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/sign" element={<SignUp />} />
+            <Route path="/signup-success" element={<SignUpSuccess />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/mypage" element={<MyPage />} />
             <Route path="/test" element={<ColorPaletteTest />} />
-            <Route path="/3d" element={<ModelViewer />} />
           </Routes>
         </main>
 

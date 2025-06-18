@@ -12,6 +12,7 @@ import { BiCategoryAlt } from "react-icons/bi";
 // 훅 목록
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext"
 
 export default function Nav() {
     // user 아이콘의 드롭다운 상태 관리 변수 선언
@@ -20,16 +21,14 @@ export default function Nav() {
     // 카테고리 랜더링
     const [isCateOpen, setIsCateOpen] = useState(false);
 
-    // 검색어 상태 관리
-    const [searchTerm, setSearchTerm] = useState("");
+    const { isLoggedIn, logout } = useAuth();
+    
     const navigate = useNavigate();
 
-    const handleSearch = (term) => {
-        const trimmedTerm = term.trim();
-        setSearchTerm(trimmedTerm);
-        navigate(`/search?keyword=${encodeURIComponent(trimmedTerm)}`);
-    };
-
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    }
 
     return (
         <>
@@ -98,20 +97,20 @@ export default function Nav() {
                             <Link to="/cart" className="hover:text-kalani-gold block cursor-pointer"><RiShoppingBagLine /></Link>
                             <div className="relative" onMouseEnter={() => setIsDropdownOpen(true)} onMouseLeave={() => setIsDropdownOpen(false)}>
                                 {/* 사용자 아이콘 */}
-                                <Link to="#" className="hover:text-kalani-gold block cursor-pointer">
+                                <Link to="/mypage" className="hover:text-kalani-gold block cursor-pointer">
                                     <FiUser />
                                 </Link>
 
                                 {/* 이게 핵심: hover 가능한 '버퍼' 공간을 추가 */}
                                 {isDropdownOpen && (
-                                    <div className="absolute top-full right-0 z-10 w-44">
+                                    <div className="absolute top-full right-0 z-10 w-44 pl-5">
                                         {/* 버퍼 영역 (공간 유지용, height는 조절 가능) */}
                                         <div className="h-5"></div>
 
                                         {/* 실제 드롭다운 메뉴 */}
-                                        <div className="bg-white rounded-md shadow-xl">
-                                            <div className="py-1 text-center">
-                                                <button
+                                        <div className="bg-white rounded-md shadow-nm">
+                                            <div className="py-3 text-center">
+                                                { !isLoggedIn && <> <button
                                                     onClick={() => {
                                                         navigate("/login");
                                                         setIsDropdownOpen(false);
@@ -120,11 +119,19 @@ export default function Nav() {
                                                 >
                                                     로그인
                                                 </button>
-                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link>
+                                                <Link to="/sign" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link></>}
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</Link>
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</Link>
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">고객센터</Link>
-                                                {/* <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">로그아웃</a> */}
+                                                { isLoggedIn && <button
+                                                    onClick={() => {
+                                                        handleLogout();
+                                                        setIsDropdownOpen(false);
+                                                    }}
+                                                    className="block w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                                >
+                                                    로그아웃
+                                                </button>}
                                             </div>
                                         </div>
                                     </div>
@@ -144,7 +151,7 @@ export default function Nav() {
             />
 
             <div
-                className={`absolute left-0 top-0 z-50 w-[400px] bg-white shadow-xl transition-all duration-500 transform
+                className={`absolute left-0 top-0 z-50 w-[450px] bg-white shadow-xl transition-all duration-500 transform
                             ${isCateOpen ? "translate-x-0 opacity-100" : "-translate-x-10 opacity-0 pointer-events-none"}
                         `}
                 style={{ transformOrigin: 'left top' }}

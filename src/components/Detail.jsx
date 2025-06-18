@@ -2,62 +2,44 @@
 import './Detail.css';
 
 // 훅 목록
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 
 // UI 목록
 import TailButton from "../UI/TailButton"
+import ColorSwatch from '../UI/ColorSwatch';
 
 // component 목록
 import CartPopup from './CartPopup';
+import colorMap from '../local/colorMap';
 
-// 애니메 효과
+// 애니메이션 효과
 import { AnimatePresence, motion } from 'framer-motion';
 
-// 리뷰 더미
-const dummyReviews = [
-    {
-        id: 1,
-        name: "Customer name",
-        date: "1 WEEK AGO",
-        content: "This company always goes above and beyond to satisfy their customers.",
-        rating: 4,
-    },
-    {
-        id: 2,
-        name: "Daniel Smith",
-        date: "2 MONTH AGO",
-        content: "I can't believe how affordable and high-quality this item is!",
-        rating: 4,
-    },
-    {
-        id: 3,
-        name: "Benjamin Clark",
-        date: "23 APRIL",
-        content: "These guys know their stuff, and it shows in their products.",
-        rating: 4,
-    },
-];
+// 이미지 줌
+import InnerImageZoom from 'react-inner-image-zoom';
+import 'react-inner-image-zoom/src/styles.css';
+
+// Icon 목록
+import { FiMinus, FiPlus, FiX } from 'react-icons/fi';
+import { BsHeart, BsHeartFill } from 'react-icons/bs';
+
 
 export default function Detail() {
     // url로 날아오는 이미지 번호 넣을 변수
     const { productId } = useParams();
 
-    // 상품이미지 관련 변수
-    const thumbnails = [
-        'src/assets/banners/배너0.jpg',
-        'src/assets/banners/배너1.jpg',
-        'src/assets/banners/배너2.jpg',
-        'src/assets/banners/배너3.jpg',
-        'src/assets/banners/배너4.jpg',
-        'src/assets/banners/배너5.jpg',
-    ];
-    const [mainImage, setMainImage] = useState(thumbnails[0]);
+    // useState
+    const [mainImage, setMainImage] = useState(null);
+    const [thumbnails, setThumbnails] = useState([]);
+    const [product, setProduct] = useState(null);
+    const [selectedSize, setSelectedSize] = useState(null);
+    const [selectedOptions, setSelectedOptions] = useState([]);
+    const [liked, setLiked] = useState(false);
     const [selectedTab, setSelectedTab] = useState('description');
 
     // 상품가져오는 변수
-    const [product, setProduct] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -66,11 +48,32 @@ export default function Detail() {
 
     useEffect(() => {
         window.scrollTo(0, 0);
-        const productFetch = async () => {
+        const fetchProduct = async () => {
+            setLoading(true);
             try {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await axios.get(`http://${baseUrl}/api/public/goods?${productId}`);
-                setProduct(res);
+                const res = await axios.get(`http://${baseUrl}/api/public/detail/${productId}`);
+                const data = res.data;
+                setProduct(data);
+
+                const imgs = data.imglist || [];
+                const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
+
+                const imagePairs = sortedImgs.map(img => {
+                    const baseImageUrl = `http://${baseUrl}/api/public/img/goods/`;
+                    return {
+                        small: `${baseImageUrl}${img.imgUrl}`,
+                        // 고화질 이미지는 다른 경로에 있다고 가정 (예: /large/ 폴더)
+                        // 백엔드와 경로를 맞춰야 합니다.
+                        large: `${baseImageUrl}${img.imgUrl}`
+                    };
+                });
+
+                setThumbnails(imagePairs);
+
+                if (imagePairs.length > 0) {
+                    setMainImage(imagePairs[0]);
+                }
             }
             catch (e) {
                 setError(e);
@@ -78,82 +81,177 @@ export default function Detail() {
             finally {
                 setLoading(false)
             }
-        }
+        };
 
-        productFetch();
+        fetchProduct();
     }, [productId]);
+
+    const handleSizeClick = (size) => {
+        if (selectedOptions.find(opt => opt.size === size)) return;
+
+        const price = product.price;
+        setSelectedOptions(prev => [...prev, { size, quantity: 1, price }]);
+    };
+
 
     const handleCartClick = () => {
         setIsPopupVisible(true);
         setTimeout(() => {
             setIsPopupVisible(false);
-        }, 3000); // 3초 후 사라짐
+        }, 2000); // 3초 후 사라짐
     }
+
+    if (loading) {
+        return <div>로딩 스켈레톤 UI...</div>; // TODO: 스켈레톤 UI 컴포넌트로 교체
+    }
+    if (error || !product) {
+        return <div>에러 발생: 상품 정보를 불러올 수 없습니다.</div>;
+    }
+
 
     return (
         <>
-            <div className="w-10/12 mx-auto flex flex-col lg:flex-row gap-20 py-10">
+            <div className="w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-12 lg:gap-20 px-4 sm:px-6 lg:px-8 py-10">
                 {/* 이미지 영역 */}
-                <div className="flex flex-row lg:w-1/2">
+                <div className="flex flex-row lg:w-1/2 lg:sticky lg:top-24 self-start">
                     {/* 썸네일 목록 */}
-                    <div className="pr-4 hidden sm:flex flex-col gap-2 overflow-y-auto max-h-[100vh] scrollbar-hide">
-                        {thumbnails.map((thumb, idx) => (
-                            <div
-                                key={idx}
-                                className={`w-20 h-28 overflow-hidden cursor-pointer border 
-                                ${mainImage === thumb ? 'border-black' : 'border-transparent'}
-                            `}
-                                onClick={() => setMainImage(thumb)}
-                            >
-                                <img
-                                    src={thumb}
-                                    alt={`thumb-${idx}`}
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* 메인 이미지 */}
-                    <div className="flex-1">
-                        <img
-                            className="w-full max-h-[100vh] object-cover"
-                            // src={mainImage}
-                            src='src/assets/banners/배너0.jpg'
-                            alt="main-product"
-                        />
-                    </div>
-                </div>
-
-                {/* 제품 정보 영역 */}
-                <div className="lg:w-1/2 flex flex-col gap-6">
-                    <h1 className="text-2xl font-semibold">나이키 스포츠웨어</h1>
-                    <p className="text-xl font-bold mt-2">49,000 원</p>
-
-                    {/* 사이즈 선택 */}
-                    <div>
-                        <h3 className="text-sm font-medium my-2">사이즈 선택</h3>
-                        <div className="flex flex-row gap-7">
-                            {['XS', 'S', 'M', 'L', 'XL'].map(size => (
-                                <TailButton color="selGhost" onClick={() => { }}>
-                                    {size}
-                                </TailButton>
+                    <div className="w-20 pr-4 flex-shrink-0">
+                        <div className="flex flex-col gap-2">
+                            {thumbnails.map((thumb, idx) => (
+                                <div
+                                    key={idx}
+                                    className={`w-full aspect-[3/4] overflow-hidden cursor-pointer border-2
+                                    ${mainImage?.small === thumb.small ? 'border-black' : 'border-transparent'}`}
+                                    onClick={() => setMainImage(thumb)}
+                                >
+                                    <img src={thumb.small} alt={`thumb-${idx}`} className="w-full h-full object-cover" />
+                                </div>
                             ))}
                         </div>
                     </div>
 
+                    {/* 메인 이미지 */}
+                    <div className="flex-1 w-full relative">
+                        <div className="w-full max-w-2xl mx-auto aspect-[3/4] bg-gray-100">
+                            {mainImage && (
+                                <InnerImageZoom
+                                    src={mainImage.small}
+                                    zoomSrc={mainImage.large}
+                                    fullscreenOnMobile={true}
+                                    zoomScale={1.5}
+                                    imgAttributes={{
+                                        className: "w-full h-full object-cover"
+                                    }}
+                                />
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* 제품 정보 영역 */}
+                <div className="lg:w-1/2 flex flex-col gap-4">
+                    <h1 className="text-2xl font-semibold">{product?.productName}</h1>
+                    <p className="text-xl font-bold mt-2">{product?.price.toLocaleString()} 원</p>
+
+                    {/* 컬러 선택 */}
+                    <div className="flex items-center gap-4">
+                        <div className="w-8 h-8">
+                            <ColorSwatch colorCode={colorMap[product?.color]} selected={true} />
+                        </div>
+                        <span className="text-sm text-gray-600 capitalize">{product?.color}</span>
+                    </div>
+
+                    {/* 사이즈 선택 */}
+                    <div>
+                        <h3 className="text-sm font-medium my-2">사이즈</h3>
+                        <div className="flex flex-row gap-7 justify-stretch">
+                            {product?.options?.map(opt => {
+                                const isOutOfStock = opt.stock === 0;
+                                return (
+                                    <TailButton
+                                        key={opt.size}
+                                        onClick={() => handleSizeClick(opt.size)}
+                                        disabled={opt.stock === 0}
+                                        className={`flex-1 rounded-md ${opt.stock === 0 ? 'text-gray-400 cursor-not-allowed' : ''}`}
+                                    >
+                                        {opt.size.toUpperCase()} {opt.stock === 0 && '(품절)'}
+                                    </TailButton>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {selectedOptions.map((opt, idx) => (
+                        <div
+                            key={idx}
+                            className="border border-gray-200 rounded-md p-4 flex justify-between items-center"
+                        >
+                            <div className="space-y-1">
+                                <p className="font-medium">사이즈 {opt.size.toUpperCase()}</p>
+                                <p className="text-sm text-gray-600">
+                                    가격 {(opt.price * opt.quantity).toLocaleString()}원
+                                </p>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    className="p-2 text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+                                    onClick={() =>
+                                        setSelectedOptions(prev =>
+                                            prev.map(o =>
+                                                o.size === opt.size && o.quantity > 1
+                                                    ? { ...o, quantity: o.quantity - 1 }
+                                                    : o
+                                            )
+                                        )
+                                    }
+                                ><FiMinus className="w-4 h-4" /></button>
+                                <span>{opt.quantity}</span>
+                                <button
+                                    className="p-2 text-gray-600 hover:bg-gray-100 transition-colors duration-200"
+                                    onClick={() =>
+                                        setSelectedOptions(prev =>
+                                            prev.map(o =>
+                                                o.size === opt.size
+                                                    ? { ...o, quantity: o.quantity + 1 }
+                                                    : o
+                                            )
+                                        )
+                                    }
+                                ><FiPlus className="w-4 h-4" /></button>
+                                <button
+                                    className="ml-4 text-gray-400 hover:text-kalani-gold"
+                                    onClick={() =>
+                                        setSelectedOptions(prev =>
+                                            prev.filter(o => o.size !== opt.size)
+                                        )
+                                    }
+                                >✕</button>
+                            </div>
+                        </div>
+                    ))}
+
                     <div className='flex w-full items-center'>
                         <div className='w-1/2 pr-3'>
                             <TailButton
-                                color="navy"
+                                variant="navy"
                                 onClick={handleCartClick}
+                                className='w-full rounded-md'
                             >장바구니</TailButton>
                         </div>
                         <div className='w-1/2 pl-3'>
                             <TailButton
-                                color="selGhost"
-                                onClick={() => { }}
-                            >위시리스트 ♡</TailButton>
+                                variant="selGhost"
+                                onClick={(e) => {
+                                    e.preventDefault(); // Link 클릭 방지
+                                    setLiked((prev) => !prev);
+                                }}
+                                className='w-full rounded-md inline-flex justify-center items-center'
+                            >위시리스트&nbsp;{liked ? (
+                                <BsHeartFill className="text-rose-600 w-4 h-4 transition-colors duration-200" />
+                            ) : (
+                                <BsHeart className="text-gray-500 w-4 h-4 drop-shadow transition-colors duration-200" />
+                            )}</TailButton>
                         </div>
                     </div>
 
@@ -172,7 +270,7 @@ export default function Detail() {
                                 exit={{ opacity: 0, y: 10, scale: 0.9 }}      // 사라질 때 상태 (투명해지고, 약간 아래로 가고, 작아짐)
                                 transition={{ duration: 0.3, ease: "easeInOut" }} // 애니메이션 지속 시간 및 효과
                             >
-                                <CartPopup product={product} />
+                                <CartPopup product={product} selectedSize={selectedSize} />
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -180,19 +278,19 @@ export default function Detail() {
             </div>
 
             {/* 상품 설명 & 리뷰 탭 */}
-            <div className="w-9/12 mx-auto border-t border-gray-300 my-10 pt-8">
+            <div className="w-full max-w-6xl mx-auto border-t border-gray-300 my-10 pt-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex">
                     {/* 왼쪽 탭 메뉴 */}
                     <div className="w-40 flex flex-col gap-2 border-r border-gray-300 pr-4">
                         <button
                             onClick={() => setSelectedTab('description')}
-                            className={`text-left px-3 py-2 rounded-md ${selectedTab === 'description' ? 'bg-gray-100 font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
+                            className={`text-left px-3 py-2 rounded-md ${selectedTab === 'description' ? 'bg-gray-100 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-kalani-gold'}`}
                         >
                             상품 설명
                         </button>
                         <button
                             onClick={() => setSelectedTab('review')}
-                            className={`text-left px-3 py-2 rounded-md ${selectedTab === 'review' ? 'bg-gray-100 font-bold' : 'text-gray-500 hover:bg-gray-50'}`}
+                            className={`text-left px-3 py-2 rounded-md ${selectedTab === 'review' ? 'bg-gray-100 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-kalani-gold'}`}
                         >
                             리뷰
                         </button>
@@ -202,18 +300,7 @@ export default function Detail() {
                     <div className="flex-1 pl-8">
                         {selectedTab === 'description' ? (
                             <div className="space-y-3 text-sm leading-6 text-gray-700">
-                                <p>
-                                    Elevate your everyday style with our Men's Black T-Shirts, the ultimate wardrobe essential for modern men. Crafted with meticulous attention to detail and designed for comfort, these versatile black tees are a must-have addition to your collection.
-                                </p>
-                                <p>
-                                    The classic black color never goes out of style. Whether you're dressing up for a special occasion or keeping it casual, these black t-shirts are the perfect choice, effortlessly complementing any outfit.
-                                </p>
-                                <ul className="list-disc list-inside mt-4 space-y-1 text-sm text-gray-600">
-                                    <li>Premium Quality</li>
-                                    <li>Versatile Wardrobe Staple</li>
-                                    <li>Available in Various Sizes</li>
-                                    <li>Tailored Fit</li>
-                                </ul>
+                                <p className="text-sm leading-6 text-gray-700 whitespace-pre-wrap">{product?.description}</p>
                             </div>
                         ) : (
                             <div className="flex">

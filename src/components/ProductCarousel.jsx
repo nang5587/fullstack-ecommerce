@@ -18,7 +18,7 @@ export default function ProductCarousel({ title, column }) {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
                 const res = await fetch(`http://${baseUrl}/api/public/${column}`);
                 const data = await res.json();
-                const item = column + 'Items';
+                const item = column === "popular" ? "popularItems" : "recommendedItems";
                 setProducts(data[item]);
             }
             catch (err) {

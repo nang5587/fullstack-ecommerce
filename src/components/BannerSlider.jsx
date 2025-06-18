@@ -5,7 +5,9 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import './BannerSlider.css';
 
-export default function BannerSlider({banners}) {
+import { Link } from 'react-router-dom';
+
+export default function BannerSlider({ banners }) {
 
     return (
         <div className="relative w-full" style={{ height: 'calc(100vh - 6rem)' }}>
@@ -22,10 +24,16 @@ export default function BannerSlider({banners}) {
                 }}
                 style={{ height: 'calc(100vh - 6rem)' }}
             >
-                {(banners.length >= 1 ? banners : []).map((src, idx) => (
+                {banners.map((src, idx) => (
                     <SwiperSlide key={idx} style={{ minHeight: 'calc(100vh - 6rem)' }}>
-                        <img src={`src/assets/banners/${src}`}
-                            alt={`banner-${idx}`} className="w-full h-full object-cover" style={{ height: 'calc(100vh - 6rem)' }} />
+                        <Link to={`/promotion/${src}`}>
+                            <img
+                                src={`src/assets/banners/${src}.jpg`}
+                                alt={`banner-${idx}`}
+                                className="w-full h-full object-cover"
+                                style={{ height: 'calc(100vh - 6rem)' }}
+                            />
+                        </Link>
                     </SwiperSlide>
                 ))}
             </Swiper>

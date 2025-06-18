@@ -2,6 +2,9 @@
 import Slider from 'rc-slider';
 import 'rc-slider/assets/index.css';
 
+// Icon
+import { RefreshCcw } from 'lucide-react';
+
 // 훅 목록
 import { useState, useEffect, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -19,6 +22,8 @@ import categoryKR from '../local/categoryKR';
 
 // 성별
 const genderOptions = ['f', 'm', 'u'];
+// 사이즈
+const sizeOptions = ['XS', 'S', 'M', 'L', 'XL'];
 // 무늬
 const patternOptions = ["graphic", "striped", "solid", "checkered", "dott", "pattern"];
 // 대분류
@@ -74,7 +79,22 @@ export default function SidebarFilters({ filters, onFilterChange, keyword }) {
     const subs = selectedMain && Array.isArray(filters.mid)
         ? filters.mid.flatMap((mid) => categoryTree[selectedMain]?.[mid] || [])
         : [];
-    const filteredGenderOptions = selectedMain === 'skirts_dress' ? ['f'] : genderOptions;
+    // const filteredGenderOptions = selectedMain === 'skirts_dress' ? ['f'] : genderOptions;
+    const isSwimwearFemaleOnly =
+        selectedMain === 'swimwear' &&
+        filters.mid?.some(mid => ['bikini', 'onepiece'].includes(mid));
+
+    const isBra =
+        selectedMain === 'underwear' &&
+        filters.mid?.includes('top') &&
+        filters.sub?.includes('bra');
+
+    const filteredGenderOptions =
+        selectedMain !== 'kids'
+            ? (isSwimwearFemaleOnly || isBra
+                ? ['f']  // 여성만
+                : (selectedMain === 'skirts_dress' ? ['f'] : genderOptions))
+            : [];
 
     const renderCheckboxGroup = (title, category, options) => {
         const selectedValues = Array.isArray(filters[category]) ? filters[category] : [];
@@ -85,67 +105,97 @@ export default function SidebarFilters({ filters, onFilterChange, keyword }) {
                 {category === "color" ? (
                     <div className="grid grid-cols-6 place-items-center gap-1">
                         {options.map((option) => (
-                                <label key={option} className="cursor-pointer w-8 h-8 flex items-center justify-center">
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedValues.includes(option)}
-                                        onChange={() => handleCheckbox(category, option)}
-                                        className="form-checkbox hidden"
-                                    />
-                                    <ColorSwatch colorCode={colorMap[option]} label={option} selected={selectedValues.includes(option)} />
-                                </label>
-                        ))}
-                    </div>
-                ) : (
-                    options.map((option) => (
-                            <label key={option} className="flex items-center gap-2 cursor-pointer">
+                            <label key={option} className="cursor-pointer w-8 h-8 flex items-center justify-center">
                                 <input
                                     type="checkbox"
                                     checked={selectedValues.includes(option)}
                                     onChange={() => handleCheckbox(category, option)}
-                                    className="form-checkbox"
+                                    className="form-checkbox hidden"
                                 />
-                                <span className={`transition-colors ${selectedValues.includes(option) ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
-                                    {categoryKR[option] || option}
-                                </span>
+                                <ColorSwatch colorCode={colorMap[option]} label={option} selected={selectedValues.includes(option)} />
                             </label>
+                        ))}
+                    </div>
+                ) : (
+                    options.map((option) => (
+                        <label key={option} className="flex items-center gap-2 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={selectedValues.includes(option)}
+                                onChange={() => handleCheckbox(category, option)}
+                                className="form-checkbox"
+                            />
+                            <span className={`transition-colors ${selectedValues.includes(option) ? "text-gray-700 font-semibold" : "text-gray-400"}`}>
+                                {categoryKR[option] || option}
+                            </span>
+                        </label>
                     ))
                 )}
             </div>
         );
     };
 
+    const handleResetFilters = () => {
+        onFilterChange({
+            main: '',
+            mid: [],
+            sub: [],
+            gender: [],
+            size: [],
+            color: [],
+            print: [],
+            minPrice: MIN_PRICE,
+            maxPrice: MAX_PRICE,
+        });
+    };
+
     return (
         <div className="w-96 h-[calc(100vh-4rem)] overflow-y-auto bg-white p-4 sticky top-16" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <Breadcrumb filters={filters} keyword={keyword} />
-
-            <div className="mb-4">
-                <h3 className="font-semibold mb-4 text-kalani-navy">대분류</h3>
-                <div className="space-y-1">
-                    {mainCategories.map((main) => (
-                        <div
-                            key={main}
-                            onClick={() => handleMainCategory(main)}
-                            className={`cursor-pointer px-1 py-0.5 ${filters.main === main ? 'text-gray-700 font-semibold' : 'text-gray-400'}`}
-                        >
-                            {categoryKR[main] || main}
-                        </div>
-                    ))}
-                </div>
+            <div className="flex justify-end mb-4">
+                <button
+                    onClick={handleResetFilters}
+                    className="flex items-center gap-1 text-sm text-gray-500 hover:text-kalani-navy transition-all"
+                    title="필터 초기화"
+                >
+                    <RefreshCcw size={18} strokeWidth={1.5} />
+                    초기화
+                </button>
             </div>
 
-            <hr className="border-t border-gray-300 my-6" />
-            {mids.length > 0 && (
+            {!keyword && (
+                <div className="mb-4">
+                    <h3 className="font-semibold mb-4 text-kalani-navy">대분류</h3>
+                    <div className="space-y-1">
+                        {mainCategories.map((main) => (
+                            <div
+                                key={main}
+                                onClick={() => handleMainCategory(main)}
+                                className={`cursor-pointer px-1 py-0.5 ${filters.main === main ? 'text-gray-700 font-semibold' : 'text-gray-400'}`}
+                            >
+                                {categoryKR[main] || main}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {!keyword && mids.length > 0 && (
                 <>
                     {renderCheckboxGroup("중분류", "mid", mids)}
                     <hr className="border-t border-gray-300 my-6" />
-                </>)}
-            {subs.length > 0 && (
+                </>
+            )}
+
+            {!keyword && subs.length > 0 && (
                 <>
                     {renderCheckboxGroup("소분류", "sub", [...new Set(subs)])}
                     <hr className="border-t border-gray-300 my-6" />
-                </>)}
+                </>
+            )}
             {renderCheckboxGroup("성별", "gender", filteredGenderOptions)}
+            <hr className="border-t border-gray-300 my-6" />
+            {renderCheckboxGroup("사이즈", "size", sizeOptions)}
             <hr className="border-t border-gray-300 my-6" />
             {renderCheckboxGroup("색상", "color", colorOptions)}
             <hr className="border-t border-gray-300 my-6" />

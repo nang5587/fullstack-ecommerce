@@ -1,6 +1,9 @@
 import SidebarFilters from "./SidebarFilter";
 import ProductCard from "./ProductCard";
 import SortMenu from './SortMenu';
+
+import TailButton from "../UI/TailButton";
+
 import { useEffect, useState, } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -57,6 +60,7 @@ export default function Listing() {
 
     const currentParams = new URLSearchParams(location.search);
     const filters = {
+        size: currentParams.getAll('size'),
         gender: currentParams.getAll('gender'),
         print: currentParams.getAll('print'),
         color: currentParams.getAll('color'),
@@ -66,7 +70,8 @@ export default function Listing() {
         minPrice: currentParams.get('minPrice') ? parseInt(currentParams.get('minPrice'), 10) : MIN_PRICE,
         maxPrice: currentParams.get('maxPrice') ? parseInt(currentParams.get('maxPrice'), 10) : MAX_PRICE,
     };
-    const sortOrder = currentParams.get('sort') || 'newest';
+    const initialSort = currentParams.get('sort') || 'newest';
+    const [sortOrder, setSortOrder] = useState(initialSort);
     const hasMore = displayedProducts.length < allProducts.length;
 
     // 핸들러 함수들
@@ -90,13 +95,28 @@ export default function Listing() {
             }
         });
 
+        if (changedParams.main === 'kids') {
+            currentParams.delete('gender');
+        }
+        // 반대로 gender 선택 시 main=kids 제거 (필요시)
+        if (changedParams.gender && changedParams.gender.length > 0) {
+            const genders = Array.isArray(changedParams.gender) ? changedParams.gender : [changedParams.gender];
+            if (genders.length > 0) {
+                const main = currentParams.get('main');
+                if (main === 'kids') {
+                    currentParams.delete('main');
+                }
+            }
+        }
+
         currentParams.set('page', '1');
         navigate(`${location.pathname}?${currentParams.toString()}`);
     };
 
     const handleSortChange = (newSort) => {
+        setSortOrder(newSort);
         const currentParams = new URLSearchParams(location.search);
-        currentParams.set('sort', newSort.sort);
+        currentParams.set('sort', newSort);
         currentParams.set('page', '1');
         navigate(`${location.pathname}?${currentParams.toString()}`);
     };
@@ -106,6 +126,13 @@ export default function Listing() {
         // 단순히 페이지 번호만 1 증가시킵니다.
         setPage(prevPage => prevPage + 1);
     };
+
+    const filteredProducts = displayedProducts.filter(product => {
+        if (filters.gender.length > 0) {
+            return product.main !== 'kids';
+        }
+        return true;
+    });
 
     return (
         <div className="flex px-8 py-6 gap-10 min-h-screen">
@@ -118,18 +145,16 @@ export default function Listing() {
                                 gap-y-10 sm:gap-y-12">
                     {/* 로딩 및 결과 없음 UI */}
                     {isLoading && displayedProducts.length === 0 && <div className="col-span-full ...">로딩 중...</div>}
-                    {!isLoading && displayedProducts.length === 0 && <div className="col-span-full ...">상품이 없습니다.</div>}
+                    {!isLoading && filteredProducts.length === 0 && <div className="col-span-full ...">상품이 없습니다.</div>}
 
-                    {displayedProducts.map(product => (
+                    {filteredProducts.map(product => (
                         <ProductCard key={product.imgname || product.fullcode} product={product} />
                     ))}
                 </div>
 
                 {hasMore && !isLoading && (
                     <div className="text-center mt-12">
-                        <button onClick={loadMore} className="px-8 py-3 bg-kalani-navy text-white font-bold rounded shadow-md hover:opacity-80 transition-opacity disabled:bg-gray-400 disabled:cursor-not-allowed">
-                            더 보기
-                        </button>
+                        <TailButton onClick={loadMore} size="md">더 보기</TailButton>
                     </div>
                 )}
                 {isLoading && displayedProducts.length > 0 && <div className="text-center mt-12 text-gray-500 font-semibold animate-pulse">로딩 중...</div>}

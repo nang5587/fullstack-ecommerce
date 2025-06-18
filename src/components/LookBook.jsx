@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 
-import clsx from "clsx";
-
 export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
     const [isHovered, setIsHovered] = useState(false);
     const [hasShownOnce, setHasShownOnce] = useState(false); // 한 번 보여줬는지 여부
@@ -58,13 +56,10 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
                 <img
                     src={imageSrc}
                     alt="Model"
-                    className="w-full h-full object-contain transition-transform duration-300 scale-105"
-                    style={{
-                        filter: "drop-shadow(0 4px 6px rgba(128, 128, 128, 0.5))",
-                        willChange: "transform",
-                        zIndex: 10 
-                    }}
+                    className={`w-full h-full object-contain ${isHovered ? "img-hovered" : "img-normal"
+                        }`}
                 />
+
 
                 <div
                     className={`absolute top-0 h-full w-[200px] bg-white p-6 flex flex-col justify-center transition-opacity duration-300 ease-in-out ${isHovered

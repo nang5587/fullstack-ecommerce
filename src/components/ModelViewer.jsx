@@ -1,17 +1,11 @@
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 // [수정 1] Bounds와 ContactShadows를 추가로 import 합니다.
-import { useGLTF, OrbitControls, Environment, Bounds, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Environment, Bounds, ContactShadows } from '@react-three/drei';
 
-function ShoeModel() {
-    const gltf = useGLTF('/3dImg/unused_blue_vans_shoe.glb');
+import Model from "./Model";
 
-    // [수정 2] 모델 자체의 scale과 position을 제거합니다. 
-    // 이제 Bounds가 이 역할을 대신합니다.
-    return <primitive object={gltf.scene} />;
-}
-
-export default function ModelViewer() {
+export default function ModelViewer({imgname}) {
     return (
         <div style={{ width: '100%', height: '100%', background: 'transparent' }}>
             {/* [수정 3] camera prop을 제거합니다. Bounds가 자동으로 카메라를 조절합니다. */}
@@ -28,7 +22,7 @@ export default function ModelViewer() {
                         - margin: 모델과 화면 가장자리 사이에 약간의 여백을 줍니다. (예: 1.2)
                     */}
                     <Bounds fit clip margin={1.2}>
-                        <ShoeModel />
+                        <Model imgname={imgname}/>
                     </Bounds>
 
                     {/* [추가] 바닥 그림자를 추가하여 더 사실적인 느낌을 줍니다. */}

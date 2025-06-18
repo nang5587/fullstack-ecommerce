@@ -6,7 +6,7 @@ const AuthContext = createContext(null);
 // 2. Context를 제공하는 Provider 컴포넌트 생성
 export function AuthProvider({ children }) {
     // localStorage에서 토큰을 확인하여 초기 로그인 상태를 설정합니다.
-    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('token'));
+    const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
 
     // 로그인 함수 (실제로는 API 호출 후 성공 시 호출)
     const login = () => {
@@ -16,7 +16,7 @@ export function AuthProvider({ children }) {
 
     // 로그아웃 함수
     const logout = () => {
-        localStorage.removeItem('token'); // 로그아웃 시 토큰 제거
+        localStorage.removeItem('accessToken'); // 로그아웃 시 토큰 제거
         setIsLoggedIn(false);
     };
 

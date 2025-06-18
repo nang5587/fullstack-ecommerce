@@ -2,6 +2,8 @@ import SidebarFilters from "./SidebarFilter"
 import ProductCard from "./ProductCard";
 import SortMenu from './SortMenu';
 
+import TailButton from "../UI/TailButton";
+
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
@@ -22,6 +24,7 @@ export default function SearchListing() {
     const currentParams = new URLSearchParams(location.search);
     const keyword = currentParams.get('keyword') || '';
     const filters = {
+        size: currentParams.getAll('size'),
         gender: currentParams.getAll('gender'),
         print: currentParams.getAll('print'),
         color: currentParams.getAll('color'),
@@ -31,7 +34,8 @@ export default function SearchListing() {
         minPrice: currentParams.get('minPrice') ? parseInt(currentParams.get('minPrice'), 10) : MIN_PRICE,
         maxPrice: currentParams.get('maxPrice') ? parseInt(currentParams.get('maxPrice'), 10) : MAX_PRICE,
     };
-    const sortOrder = currentParams.get('sort') || 'newest';
+    const initialSort = currentParams.get('sort') || 'newest';
+    const [sortOrder, setSortOrder] = useState(initialSort);
 
     // 검색어, 필터, 정렬이 바뀌면 페이지 초기화 + 상품 초기화 + hasMore 초기화
     useEffect(() => {
@@ -118,8 +122,9 @@ export default function SearchListing() {
     };
 
     const handleSortChange = (newSort) => {
+        setSortOrder(newSort);
         const currentParams = new URLSearchParams(location.search);
-        currentParams.set('sort', newSort.sort);
+        currentParams.set('sort', newSort);
         currentParams.set('page', '1');
         navigate(`/search?${currentParams.toString()}`);
     };
@@ -130,9 +135,16 @@ export default function SearchListing() {
         }
     };
 
+    const filteredProducts = displayedProducts.filter(product => {
+        if (filters.gender.length > 0) {
+            return product.main !== 'kids';
+        }
+        return true;
+    });
+
     return (
         <div className="flex px-8 py-6 gap-10 min-h-screen">
-            {keyword && <SidebarFilters filters={filters} onFilterChange={handleFilterChange} />}
+            {keyword && <SidebarFilters filters={filters} onFilterChange={handleFilterChange} keyword={keyword} />}
             <main className="flex-1">
                 <div className="flex justify-between items-center mb-6">
                     {displayedProducts.length > 0 ? (
@@ -153,25 +165,20 @@ export default function SearchListing() {
                             검색 중입니다...
                         </div>
                     )}
-                    {!isLoading && keyword && displayedProducts.length === 0 && (
+                    {!isLoading && keyword && filteredProducts.length === 0 && (
                         <div className="col-span-full text-center py-20 text-gray-500 font-medium">
                             '{keyword}'에 대한 검색 결과가 없습니다.
                         </div>
                     )}
 
-                    {displayedProducts.map(product => (
+                    {filteredProducts.map(product => (
                         <ProductCard key={product.imgname || product.fullcode} product={product} />
                     ))}
                 </div>
 
                 {hasMore && !isLoading && (
                     <div className="text-center mt-12">
-                        <button
-                            onClick={loadMore}
-                            className="px-8 py-3 bg-kalani-navy text-white font-semibold rounded-md shadow-md hover:opacity-90 transition-opacity disabled:bg-gray-400"
-                        >
-                            더 보기
-                        </button>
+                        <TailButton onClick={loadMore} size="md">더 보기</TailButton>
                     </div>
                 )}
 

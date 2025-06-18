@@ -6,7 +6,7 @@ export default function ColorSwatch({ colorCode, selected }) {
             <div
                 className={`
                     w-4/5 aspect-square rounded-full  
-                    ${selected ? 'border-2 border-gray-700' : ''}
+                    ${selected ? 'border-2 border-gray-600' : ''}
                 `}
                 style={{ backgroundColor: colorCode }}
             />

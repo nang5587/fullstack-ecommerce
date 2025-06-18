@@ -10,15 +10,15 @@ import TailButton from "../UI/TailButton";
 import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-// 배너
+// 광고 항목
 const banners = [
-        '배너0.jpg',
-        '배너1.jpg',
-        '배너2.jpg',
-        '배너3.jpg',
-        '배너4.jpg',
-        '배너5.jpg',
-    ];
+    '381720493',
+    '920183745',
+    '508172634',
+    '194837261',
+    '760394812',
+    '239485170',
+];
 
 // test용 데이터
 const model1Items = [
@@ -107,13 +107,10 @@ export default function Home() {
     return (
         <>
             {/* 배너 */}
-            {/* <Link to={`/promotion/${bannerProductId}`}>
             <div ref={bannerRef} className="w-full mb-20"
                 style={{ height: 'calc(100vh - 6rem)' }}>
-                <BannerSlider banners={banners}/>
+                <BannerSlider banners={banners} />
             </div>
-            </Link> */}
-
             {/* 추천 스타일 */}
             <div className="my-30" ref={recommendRef}>
                 <ProductCarousel title="추천 스타일" column="recommendedItems" />
@@ -137,9 +134,13 @@ export default function Home() {
                     </p>
                     <div className="w-[160px] lg:w-1/4">
                         <TailButton
-                            color="navy"
+                            variant="navy"
+                            size='lg'
                             onClick={() => { }}
-                        ><span>쇼핑하러 가기</span></TailButton>
+                            className='font-medium'
+                        >
+                            자세히 보기
+                        </TailButton>
                     </div>
                 </div>
 

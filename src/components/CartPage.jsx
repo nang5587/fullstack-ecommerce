@@ -146,7 +146,7 @@ export default function CartPage() {
                         )}
                     </section>
 
-                    <section className="mt-16 rounded-lg bg-white border border-gray-300 lg:col-span-4 lg:mt-0 lg:p-8 p-6 shadow-lg">
+                    <section className="mt-16 rounded-lg bg-white border border-gray-300 lg:col-span-4 lg:mt-0 lg:p-8 p-6 shadow-nm">
                         <h2 id='font4' className="text-xl text-kalani-navy">구매 금액</h2>
                         <dl className="mt-6 space-y-4">
                             <div className="flex items-center justify-between">
@@ -165,7 +165,7 @@ export default function CartPage() {
                         <div className="mt-8">
                             <button type="submit"
                                     className="w-full rounded-md border-transparent bg-kalani-navy px-4 py-3 text-center font-bold
-                                            text-white shadow-sm hover:bg-kalani-gold focus:outline-none focus:ring-2 focus:ring-offset-2
+                                            text-white shadow-nm hover:bg-kalani-gold focus:outline-none focus:ring-2 focus:ring-offset-2
                                             focus:ring-kalani-gold focus:ring-offset-white transition-opacity disabled:bg-gray-400
                                             disabled:cursor-not-allowed" 
                                     disabled={items.length === 0}>

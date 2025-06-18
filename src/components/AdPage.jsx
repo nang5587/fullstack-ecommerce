@@ -1,17 +1,60 @@
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+
 import { motion } from 'framer-motion';
 import ModelViewer from './ModelViewer';
 
 export default function AdPage() {
-    // 제품 ID는 실제 상품에 맞게 변경해야 합니다.
-    const productId = 'SHOE-001';
+    const { productId } = useParams();
+    const [product, setProduct] = useState(null);
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        async function fetchProduct() {
+            try {
+                const response = await fetch('/data/products.json');
+                if (!response.ok) throw new Error('상품 데이터를 불러오지 못했습니다.');
+                const allProducts = await response.json();
+                const found = allProducts.find((item) => item.imgname === productId);
+                if (!found) throw new Error('해당 상품을 찾을 수 없습니다.');
+                setProduct(found);
+            } catch (err) {
+                console.error(err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        fetchProduct();
+    }, [productId]);
+
+    // 로딩중일 때
+    if (loading) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center bg-kalani-creme">
+                <p className="text-kalani-navy text-xl font-medium">로딩 중...</p>
+            </div>
+        );
+    }
+
+    // 에러, 상품 없을 때
+    if (error || !product) {
+        return (
+            <div className="w-full min-h-screen flex items-center justify-center bg-kalani-creme">
+                <p className="text-red-600 text-xl font-medium">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-screen bg-kalani-creme flex flex-col lg:flex-row">
 
             {/* 왼쪽: 3D 모델 뷰어 영역 */}
             <div className="w-full lg:w-3/5 h-[50vh] lg:h-screen bg-gray-200">
-                <ModelViewer />
+                <ModelViewer imgname={product.imgname}/>
             </div>
 
             {/* 오른쪽: 광고 문구 및 정보 영역 */}
@@ -44,7 +87,7 @@ export default function AdPage() {
                             className="text-5xl lg:text-6xl font-bold text-kalani-navy mb-6"
                             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                         >
-                            TRACE No.01
+                            {product.name}
                         </motion.h1>
 
                         {/* 광고 문구 */}
@@ -52,7 +95,7 @@ export default function AdPage() {
                             className="text-base text-kalani-ash leading-relaxed mb-8"
                             variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}
                         >
-                            가장 조용한 선언. TRACE는 불필요한 모든 것을 덜어내고 오직 본질에만 집중합니다. 당신의 모든 걸음이 쌓여 완성되는 유일한 흔적, 시간이 흘러도 변치 않는 가치를 경험하세요.
+                            {product.description}
                         </motion.p>
 
                         {/* 특징 리스트 */}
@@ -62,15 +105,15 @@ export default function AdPage() {
                         >
                             <li className="flex items-center">
                                 <span className="font-semibold w-28">소재:</span>
-                                <span>이탈리안 스웨이드 & 풀-그레인 레더</span>
+                                <span>{product.material}</span>
                             </li>
                             <li className="flex items-center">
                                 <span className="font-semibold w-28">안감:</span>
-                                <span>최고급 카프스킨 안감</span>
+                                <span>{product.lining}</span>
                             </li>
                             <li className="flex items-center">
                                 <span className="font-semibold w-28">제조:</span>
-                                <span>포르투갈 장인의 수작업</span>
+                                <span>{product.origin}</span>
                             </li>
                         </motion.ul>
 
@@ -78,7 +121,7 @@ export default function AdPage() {
                         <motion.div variants={{ hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0 } }}>
                             <Link
                                 to={`/detail/${productId}`}
-                                className="inline-block w-full text-center px-8 py-4 bg-kalani-navy text-white font-semibold rounded-md shadow-md hover:opacity-90 transition-opacity"
+                                className="inline-block w-full text-center px-8 py-4 bg-kalani-navy text-white font-semibold rounded-md shadow-nm hover:opacity-90 transition-opacity"
                             >
                                 자세히 보기 & 구매하기
                             </Link>

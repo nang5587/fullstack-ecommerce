@@ -1,6 +1,15 @@
+// 훅 목록
 import { Link } from "react-router-dom";
+import { useState } from 'react';
+
+// Icon
+import { BsHeart, BsHeartFill } from 'react-icons/bs';
+
+import { motion } from 'framer-motion';
 
 export default function ProductCard({ product }) {
+    const [liked, setLiked] = useState(false);
+
     const productCode = product.imgname;
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const imgUrl = `http://${baseUrl}/api/public/img/goods/${productCode}.jpg`;
@@ -23,6 +32,21 @@ export default function ProductCard({ product }) {
                     <h3 className="text-sm font-medium text-gray-800">{product.productName}</h3>
                     <p className="mt-1 text-base font-semibold text-gray-800">{product.price.toLocaleString('ko-KR')}원</p>
                 </div>
+                <motion.button
+                    whileTap={{ scale: 1.3 }}
+                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                    onClick={(e) => {
+                        e.preventDefault(); // Link 클릭 방지
+                        setLiked((prev) => !prev);
+                    }}
+                    className="absolute top-4 right-4 z-10 p-1"
+                >
+                    {liked ? (
+                        <BsHeartFill className="text-rose-600 w-6 h-6 transition-colors duration-200" />
+                    ) : (
+                        <BsHeart className="text-gray-500 w-6 h-6 drop-shadow transition-colors duration-200" />
+                    )}
+                </motion.button>
             </Link>
         </div>
     )

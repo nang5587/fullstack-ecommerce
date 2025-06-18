@@ -16,21 +16,21 @@ export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
     // 로그인 관리 변수
-    const [userId, setUserId] = useState("");
+    const [username, setusername] = useState("");
     const [password, setPassword] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const [loading, setLoading] = useState(false);
 
     // 포커스 이동용
-    const userIdRef = useRef(null);
+    const usernameRef = useRef(null);
     const passwordRef = useRef(null);
 
     // 로그인 함수
     const handleLogin = async () => {
         setErrorMsg("");
-        if (!userId) {
+        if (!username) {
             setErrorMsg("아이디를 입력해주세요.");
-            userIdRef.current.focus();
+            usernameRef.current.focus();
             return;
         }
         if (!password) {
@@ -41,26 +41,39 @@ export default function Login() {
 
         setLoading(true);
         try {
-            const response = await fetch("api/public/login", {
+            const baseUrl = import.meta.env.VITE_BACKEND_URL;
+            const response = await fetch(`http://${baseUrl}/api/public/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId, password }),
+                body: JSON.stringify({ username, password }),
+                credentials: "include",
             });
 
             if (!response.ok) {
-                const data = await response.json();
                 setErrorMsg("로그인에 실패했습니다." || data.message)
             }
             else {
-                const data = await response.json();
-                console.log("로그인 성공", data);
-                localStorage.setItem("token", data.token);
-                login();
-                navigate("/"); // 새로고침 안 해서 부드러운 이동
+                const headers = response.headers;
+
+                // 'Authorization' 헤더에서 토큰 값을 추출합니다.
+                let authToken = headers.get('authorization');
+
+                // 헤더에 토큰이 있는지 확인하고 로컬 스토리지에 저장합니다.
+                if (authToken) {
+                    authToken = authToken.replace("Bearer ", "");
+                    localStorage.setItem('accessToken', authToken);
+                    console.log('로그인 성공! 토큰을 저장했습니다.');
+                    // 여기서 로그인 후 다음 페이지로 이동하는 등의 로직을 추가할 수 있습니다.
+                    login();
+                    navigate("/");
+                } else {
+                    console.error('응답 헤더에 토큰이 없습니다.');
+                } // 새로고침 안 해서 부드러운 이동
             }
         }
         catch (error) {
             setErrorMsg("서버와 통신 중 오류가 발생했습니다.")
+            // console.log("로그인 응답:", data);
             console.error(error);
         }
         finally {
@@ -91,7 +104,7 @@ export default function Login() {
                     </p>
 
                     <div className="flex flex-col gap-5">
-                        <TailInput label="아이디" type="text" value={userId} onChange={(e) => setUserId(e.target.value)} ref={userIdRef} />
+                        <TailInput label="아이디" type="text" value={username} onChange={(e) => setusername(e.target.value)} ref={usernameRef} />
                         <TailInput label="비밀번호" type="password" value={password} onChange={(e) => setPassword(e.target.value)} ref={passwordRef} />
                     </div>
 
@@ -112,7 +125,7 @@ export default function Login() {
 
 
                     <div className="mt-8 flex flex-col gap-3">
-                        <TailButton color="navy" onClick={handleLogin} disabled={loading}>
+                        <TailButton variant="navy" onClick={handleLogin} disabled={loading}>
                             {loading ? "로그인 중..." : "로그인"}
                         </TailButton>
                     </div>
@@ -125,11 +138,11 @@ export default function Login() {
                     </div>
 
                     <div className="flex flex-col gap-3">
-                        <TailButton color="google" onClick={() => { }}>
+                        <TailButton variant="selGhost" onClick={() => { }}>
                             <FcGoogle size={22} />
                             <span>구글로 로그인</span>
                         </TailButton>
-                        <TailButton color="naver" onClick={() => { }}>
+                        <TailButton variant="naver" onClick={() => { }}>
                             <img src="src/assets/icons/naver_logo.png" alt="Naver logo" className="w-5 h-5" />
                             <span>네이버로 로그인</span>
                         </TailButton>
