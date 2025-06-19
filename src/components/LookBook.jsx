@@ -62,7 +62,7 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
 
 
                 <div
-                    className={`absolute top-0 h-full w-[200px] bg-white p-6 flex flex-col justify-center transition-opacity duration-300 ease-in-out ${isHovered
+                    className={`absolute top-0 h-full w-[200px] p-6 flex flex-col justify-center transition-opacity duration-300 ease-in-out ${isHovered
                         ? "opacity-100 pointer-events-auto translate-x-0"
                         : "opacity-0 pointer-events-none"
                         }`}
@@ -71,7 +71,7 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
                         textAlign: infoPosition === "left" ? "right" : "left",
                     }}
                 >
-                    <ul className="space-y-6 text-black hover:text-kalani-gold">
+                    <ul className="space-y-6 text-white hover:text-kalani-gold">
                         {items.map((item, idx) => (
                             <li key={idx}>
                                 <a

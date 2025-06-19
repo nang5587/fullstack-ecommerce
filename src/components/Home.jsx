@@ -10,6 +10,8 @@ import TailButton from "../UI/TailButton";
 import { useRef, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
+import Particle from "./Particle";
+
 // 광고 항목
 const banners = [
     '381720493',
@@ -117,39 +119,46 @@ export default function Home() {
             </div>
 
             {/* LOOKBOOK 섹션 */}
-            <div className="flex flex-col xl:flex-row justify-between items-stretch px-6 lg:px-40 bg-white w-full h-auto lg:min-h-[800px] gap-10 mb-20">
-                {/* 왼쪽 LookBook */}
-                <div className="w-full xl:flex-1">
-                    <LookBook imageSrc="src/assets/model1.png" items={model1Items} infoPosition="right" />
+            {/* ✅ LOOKBOOK 섹션 수정 */}
+            {/* 최상위 컨테이너에 overflow-hidden 추가 */}
+            <div className="relative isolate overflow-hidden flex justify-center items-center px-6 lg:px-40 w-full h-auto lg:min-h-[800px] mb-20
+                bg-[url('src/assets/beach.jpg')] bg-cover bg-center bg-no-repeat
+            ">
+                <div className="absolute inset-0 z-0"> {/* 이 래퍼를 추가 */}
+                    <Particle />
                 </div>
 
-                {/* 가운데 광고 문구 */}
-                <div className="w-full xl:w-[600px] max-w-full flex flex-col items-center justify-center text-center py-10">
-                    <h2 id="font2" className="text-4xl lg:text-5xl font-bold mb-8 lg:mb-20">2025 S/S LOOKBOOK</h2>
-                    <p className="text-base lg:text-lg mb-8 lg:mb-20 text-gray-700 leading-relaxed">
-                        따사로운 햇살과 함께 시작되는 새로운 계절.<br />
-                        2025 S/S LOOKBOOK은 간결함 속 디테일,<br />
-                        클래식과 트렌드의 조화를 담아냈습니다.<br />
-                        지금, 당신의 계절을 디자인하세요.
-                    </p>
-                    <div className="w-[160px] lg:w-1/4">
-                        <TailButton
-                            variant="navy"
-                            size='lg'
-                            onClick={() => { }}
-                            className='font-medium'
-                        >
-                            자세히 보기
-                        </TailButton>
+                {/* 콘텐츠 레이어 (z-20) */}
+                <div className="relative z-20 w-full flex flex-col xl:flex-row justify-between items-stretch gap-10 py-10">
+                    {/* ... 모든 콘텐츠는 그대로 ... */}
+                    <div className="w-full xl:flex-1">
+                        <LookBook imageSrc="src/assets/model1.png" items={model1Items} infoPosition="right" />
                     </div>
-                </div>
-
-                {/* 오른쪽 LookBook */}
-                <div className="w-full xl:flex-1">
-                    <LookBook imageSrc="src/assets/model2.png" items={model2Items} infoPosition="left" />
+                    <div className="w-full xl:w-[600px] max-w-full flex flex-col items-center justify-center text-center">
+                        <h2 id="font5" className="lg:text-6xl font-bold mb-8 lg:mb-20 text-white text-glow">2025 S/S LOOKBOOK</h2>
+                        <p className="text-base lg:text-xl mb-8 lg:mb-20 text-white leading-relaxed">
+                            따사로운 햇살과 함께 시작되는 새로운 계절.<br />
+                            2025 S/S LOOKBOOK은 간결함 속 디테일,<br />
+                            클래식과 트렌드의 조화를 담아냈습니다.<br />
+                            지금, 당신의 계절을 디자인하세요.
+                        </p>
+                        <div className="w-[160px] lg:w-1/4">
+                            <TailButton
+                                size='lg'
+                                onClick={() => {}}
+                                className='font-bold shadow-nm rounded-sm py-2 bg-opacity-0 text-white '
+                            >
+                                자세히 보기
+                            </TailButton>
+                        </div>
+                    </div>
+                    <div className="w-full xl:flex-1">
+                        <LookBook imageSrc="src/assets/model2.png" items={model2Items} infoPosition="left" />
+                    </div>
                 </div>
             </div>
 
+            {/* 인기 상품 섹션 */}
             <div className="my-30">
                 <ProductCarousel title="인기 상품" column="popular" />
             </div>

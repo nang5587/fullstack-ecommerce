@@ -25,6 +25,8 @@ import Login from "./components/Login";
 
 import MyPage from './components/MyPage';
 
+import Test from './components/Test';
+
 import ColorPaletteTest from './components/ColorPaletteTest';
 
 function App() {
@@ -49,7 +51,8 @@ function App() {
               <Route path="/signup-success" element={<SignUpSuccess />} />
               <Route path="/login" element={<Login />} />
               <Route path="/mypage" element={<MyPage />} />
-              <Route path="/test" element={<ColorPaletteTest />} />
+              <Route path="/color" element={<ColorPaletteTest />} />
+              <Route path="/test" element={<Test />} />
             </Routes>
           </main>
 
