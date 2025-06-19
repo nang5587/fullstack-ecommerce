@@ -46,7 +46,7 @@ export default function SearchListing() {
 
     // 페이지 또는 필터 변경 시 상품 불러오기
     useEffect(() => {
-        // keyword 없으면 fetch 하지 말자
+        // 키워드가 없으면 초기화하고 API 호출을 중단합니다.
         if (!keyword) {
             setIsLoading(false);
             setDisplayedProducts([]);
@@ -58,24 +58,50 @@ export default function SearchListing() {
             setIsLoading(true);
 
             try {
+                // 1. 요청 헤더 준비
+                const headers = new Headers();
+                headers.append("Content-Type", "application/json"); // 보내는 데이터 타입 명시 (필수는 아니지만 좋은 습관)
+
+                // 2. localStorage에서 토큰 가져오기
+                const token = localStorage.getItem('accessToken');
+
+                // 3. 토큰이 존재하면 Authorization 헤더에 추가
+                if (token) {
+                    headers.append("Authorization", `Bearer ${token}`);
+                }
+
+                // 4. 요청 URL 및 쿼리 파라미터 준비
                 const queryParams = new URLSearchParams(location.search);
                 queryParams.set('page', page);
                 queryParams.set('limit', PRODUCTS_PER_PAGE);
 
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`http://${baseUrl}/api/public/search?${queryParams.toString()}`);
+                const url = `http://${baseUrl}/api/public/search?${queryParams.toString()}`;
+
+                // 5. fetch 요청 시 headers를 포함한 옵션 객체 전달
+                const res = await fetch(url, {
+                    method: 'GET', // GET 요청은 기본값이지만 명시적으로 작성
+                    headers: headers // 준비된 헤더를 여기에 추가
+                });
+
+                // --- 여기부터는 기존 코드와 동일 ---
+
+                if (!res.ok) { // 200번대 응답이 아닌 경우 에러 처리
+                    throw new Error(`API responded with status ${res.status}`);
+                }
+
                 const data = await res.json();
 
+                // 페이지에 따라 상품 목록을 설정하거나 추가합니다.
                 if (page === 1) {
                     setDisplayedProducts(data);
                 } else {
                     setDisplayedProducts(prev => [...prev, ...data]);
                 }
 
-                // 데이터 길이가 페이지당 상품 수보다 작으면 더이상 불러올게 없음
+                // 더 불러올 데이터가 있는지 확인합니다.
                 setHasMore(data.length === PRODUCTS_PER_PAGE);
 
-                // 만약 첫 페이지인데 상품이 하나도 없으면 hasMore도 false로
                 if (page === 1 && data.length === 0) {
                     setHasMore(false);
                 }

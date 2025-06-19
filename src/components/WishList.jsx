@@ -5,10 +5,10 @@ import { Link } from 'react-router-dom';
 // UI 목록
 import TailButton from '../UI/TailButton';
 
-const initialItems = [
+const initialItems = [ // imgname, username, size 삭제, 수량 삭제
     {
         id: 1,
-        name: 'Raw Black T-Shirt',
+        name: 'Raw Black T-Shirt', // productName
         color: 'Green',
         size: 'M',
         price: 75000,

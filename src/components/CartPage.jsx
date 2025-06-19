@@ -1,52 +1,22 @@
 // 훅 목록
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useCart } from './CartContext';
 
 // Icon 목록
 import { FiMinus, FiPlus } from 'react-icons/fi';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 
-const initialItems = [
-    {
-        id: 1,
-        name: 'Raw Black T-Shirt',
-        color: 'Green',
-        size: 'M',
-        price: 75000,
-        quantity: 1,
-        imageSrc: 'src/assets/items/0116379047.jpg',
-        imageAlt: '검은색 티셔츠',
-    },
-    {
-        id: 2,
-        name: 'Essential Neutrals',
-        color: 'Purple',
-        size: 'M',
-        price: 22000,
-        quantity: 1,
-        imageSrc: 'src/assets/items/0163734002.jpg',
-        imageAlt: '흰색 티셔츠',
-    },
-];
+// UI 목록
+import TailButton from '../UI/TailButton';
 
 export default function CartPage() {
-    const [items, setItems] = useState(initialItems);
-
-    const handleQuantityChange = (itemId, amount) => {
-        setItems(prevItems =>
-            prevItems.map(item =>
-                item.id === itemId
-                    ? { ...item, quantity: Math.max(1, item.quantity + amount) } // 수량은 최소 1
-                    : item
-            ).filter(item => item.quantity > 0) // 수량이 0이면 배열에서 제거 (필요시)
-        );
-    };
-
-    const handleRemoveItem = (itemId) => {
-        setItems(prevItems => prevItems.filter(item => item.id !== itemId));
-    };
+    const [errorMsg, setErrorMsg] = useState('');
+    const { cartItems, updateQuantity, removeItem } = useCart();
 
     // 주문 요약 계산
-    const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
     const shippingFee = subtotal >= 50000 ? 0 : 3000; // 5만원 이상 무료배송
     // 상품이 있을 때만 배송비를 추가하고, 없으면 0으로 계산
     const total = subtotal > 0 ? subtotal + shippingFee : 0;
@@ -67,7 +37,7 @@ export default function CartPage() {
                 {/* 메인 컨텐츠 영역 */}
                 <div className="mt-12 lg:grid lg:grid-cols-12 lg:items-start lg:gap-x-12 xl:gap-x-16">
                     <section className="lg:col-span-8">
-                        {items.length === 0 ? (
+                        {cartItems.length === 0 ? (
                             <div className="text-center py-16 border-y border-gray-300">
                                 <p className="text-gray-500">장바구니에 담긴 상품이 없습니다.</p>
                                 <Link to="/" className="mt-4 inline-block text-kalani-gold font-medium hover:underline">
@@ -76,7 +46,7 @@ export default function CartPage() {
                             </div>
                         ) : (
                             <ul className="divide-y border-y border-gray-300 divide-gray-300">
-                                {items.map((item) => (
+                                {cartItems.map((item) => (
                                     <li key={item.id} className="flex py-6 sm:py-8">
                                         <div className="flex-shrink-0">
                                             <Link to={`/detail/${item.id}`}>
@@ -108,7 +78,7 @@ export default function CartPage() {
                                                     <div className="flex items-center border border-gray-200 rounded-md overflow-hidden">
                                                         {/* 빼기 버튼 */}
                                                         <button
-                                                            onClick={() => handleQuantityChange(item.id, -1)}
+                                                            onClick={() => updateQuantity(item.id, item.size, -1)}
                                                             type="button"
                                                             className="p-2 text-gray-600 hover:bg-gray-100 transition-colors duration-200"
                                                         >
@@ -122,7 +92,7 @@ export default function CartPage() {
 
                                                         {/* 더하기 버튼 */}
                                                         <button
-                                                            onClick={() => handleQuantityChange(item.id, 1)}
+                                                            onClick={() => updateQuantity(item.id, item.size, 1)}
                                                             type="button"
                                                             className="p-2 text-gray-600 hover:bg-gray-100 transition-colors duration-200"
                                                         >
@@ -135,10 +105,11 @@ export default function CartPage() {
                                                     </p>
                                                 </div>
                                             </div>
-
-                                            <button onClick={() => handleRemoveItem(item.id)} type="button" className="mt-4 text-sm font-medium text-kalani-gold hover:text-kalani-navy self-start">
-                                                삭제
-                                            </button>
+                                            <div className='flex justify-end items-center'>
+                                                <button onClick={() => removeItem(item.id, item.size)} type="button" className="mt-4 text-sm font-medium text-kalani-gold hover:text-kalani-navy self-start">
+                                                    삭제
+                                                </button>
+                                            </div>
                                         </div>
                                     </li>
                                 ))}
@@ -164,13 +135,43 @@ export default function CartPage() {
                         </dl>
                         <div className="mt-8">
                             <button type="submit"
-                                    className="w-full rounded-md border-transparent bg-kalani-navy px-4 py-3 text-center font-bold
+                                onClick={() => {
+                                    const isLoggedIn = Boolean(localStorage.getItem('accessToken'));
+                                    if (!isLoggedIn) {
+                                        setErrorMsg('로그인이 필요합니다. 로그인 후 구매를 진행해주세요.');
+                                    }
+                                    else {
+                                        window.location.href = '/order';
+                                    }
+                                }}
+                                className="w-full rounded-md border-transparent bg-kalani-navy px-4 py-3 text-center font-bold
                                             text-white shadow-nm hover:bg-kalani-gold focus:outline-none focus:ring-2 focus:ring-offset-2
                                             focus:ring-kalani-gold focus:ring-offset-white transition-opacity disabled:bg-gray-400
-                                            disabled:cursor-not-allowed" 
-                                    disabled={items.length === 0}>
+                                            disabled:cursor-not-allowed"
+                                disabled={cartItems.length === 0}>
                                 구매하기
                             </button>
+
+                            <div className={`transition-all duration-300 ${errorMsg ? 'mt-6 opacity-100' : 'opacity-0 h-0'}`}>
+                                {errorMsg && (
+                                    <div className="p-3 flex flex-col justify-between items-center gap-5 text-sm rounded-lg bg-kalani-creme text-gray-700">
+                                        <span>
+                                            <FontAwesomeIcon icon={faCircleExclamation} />&nbsp;
+                                            {errorMsg}
+                                        </span>
+                                        <TailButton
+                                            variant="navy"
+                                            onClick={() => {
+                                                // 전체 페이지 reload가 필요할 때 또는 외부 인증 서버로 이동할 때 많이 사용됨
+                                                window.location.href = '/login?redirect=/cart'; // 로그인 후 장바구니 이동
+                                            }}
+                                            className="px-4 py-2 text-sm"
+                                        >
+                                            로그인하러 가기
+                                        </TailButton>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </section>
                 </div>

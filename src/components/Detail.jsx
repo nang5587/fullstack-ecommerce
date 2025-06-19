@@ -5,6 +5,8 @@ import './Detail.css';
 import { useEffect, useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import { useCart } from './CartContext';
+import { useAuth } from '../context/AuthContext';
 
 // UI 목록
 import TailButton from "../UI/TailButton"
@@ -13,6 +15,7 @@ import ColorSwatch from '../UI/ColorSwatch';
 // component 목록
 import CartPopup from './CartPopup';
 import colorMap from '../local/colorMap';
+import ReviewWriteForm from './ReviewWriteForm';
 
 // 애니메이션 효과
 import { AnimatePresence, motion } from 'framer-motion';
@@ -24,11 +27,14 @@ import 'react-inner-image-zoom/src/styles.css';
 // Icon 목록
 import { FiMinus, FiPlus, FiX } from 'react-icons/fi';
 import { BsHeart, BsHeartFill } from 'react-icons/bs';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 
 
 export default function Detail() {
     // url로 날아오는 이미지 번호 넣을 변수
     const { productId } = useParams();
+    const { addToCart } = useCart();
 
     // useState
     const [mainImage, setMainImage] = useState(null);
@@ -38,6 +44,13 @@ export default function Detail() {
     const [selectedOptions, setSelectedOptions] = useState([]);
     const [liked, setLiked] = useState(false);
     const [selectedTab, setSelectedTab] = useState('description');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    // 리뷰 useState
+    const [isPurchased, setIsPurchased] = useState(false);
+    const [reviews, setReviews] = useState([]);
+    const [reviewLoading, setReviewLoading] = useState(true);
+    const [reviewError, setReviewError] = useState(null);
 
     // 상품가져오는 변수
     const [error, setError] = useState(null);
@@ -46,6 +59,17 @@ export default function Detail() {
     // 장바구니 팝업 변수
     const [isPopupVisible, setIsPopupVisible] = useState(false);
 
+    const { isLoggedIn, username } = useAuth();
+
+    const sizeOrder = ['xs', 's', 'm', 'l', 'xl'];
+    const sortedOptions = useMemo(() => {
+        if (!product?.options) return [];
+        return [...product.options].sort(
+            (a, b) => sizeOrder.indexOf(a.size.toLowerCase()) - sizeOrder.indexOf(b.size.toLowerCase())
+        );
+    }, [product]);
+
+    // 상품정보 useEffect
     useEffect(() => {
         window.scrollTo(0, 0);
         const fetchProduct = async () => {
@@ -86,20 +110,115 @@ export default function Detail() {
         fetchProduct();
     }, [productId]);
 
+    // 구매 확인 useEffect
+    useEffect(() => {
+        const checkPurchased = async () => {
+            if (!isLoggedIn || !username || !productId) return;
+            try {
+                const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await axios.get(`http://${baseUrl}/api/private/purchased/${username}/${productId}`);
+                setIsPurchased(res.data === true); // 백엔드 응답 형태에 따라 조정
+            } catch (err) {
+                console.error('구매 여부 확인 실패:', err);
+            }
+        };
+        checkPurchased();
+    }, [isLoggedIn, username, productId]);
+
+    // 리뷰 리스트 useEffect
+    useEffect(() => {
+        const fetchReviews = async () => {
+            try {
+                setReviewLoading(true);
+                const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await axios.get(`http://${baseUrl}/api/public/reviews/${productId}`);
+                setReviews(res.data); // ← 서버 응답 형태에 따라 조정
+            } catch (err) {
+                console.error("리뷰 데이터를 불러오는 데 실패함: ", err);
+                setReviewError(err);
+            } finally {
+                setReviewLoading(false);
+            }
+        };
+
+        fetchReviews();
+    }, [productId]);
+
+
     const handleSizeClick = (size) => {
         if (selectedOptions.find(opt => opt.size === size)) return;
 
-        const price = product.price;
-        setSelectedOptions(prev => [...prev, { size, quantity: 1, price }]);
+        const optionData = product.options.find(opt => opt.size === size);
+        if (!optionData) return;
+
+        setSelectedOptions(prev => [
+            ...prev,
+            {
+                size,
+                quantity: 1,
+                price: Number(product.price) || 0,
+                optionid: optionData.optionid,
+            }
+        ]);
     };
 
 
     const handleCartClick = () => {
+        console.log(product)
+        if (selectedOptions.length === 0) {
+            setErrorMsg('사이즈를 선택해주세요')
+
+            setTimeout(() => {
+                setErrorMsg('');
+            }, 2000);
+            return;
+        }
+        selectedOptions.forEach((opt) => {
+            addToCart({
+                id: opt.optionid,
+                name: product.productName,
+                price: opt.price,
+                color: product.color,
+                size: opt.size,
+                quantity: opt.quantity,
+                imageSrc: thumbnails[0]?.small || '', // 대표 이미지 (없으면 공백)
+                imageAlt: `${product.productName} - ${product.color}`,
+            })
+        })
+        console.log('들어간거 : ', selectedOptions)
+        setSelectedOptions([]);
+
         setIsPopupVisible(true);
         setTimeout(() => {
             setIsPopupVisible(false);
-        }, 2000); // 3초 후 사라짐
+        }, 2000); // 2초 후 사라짐
     }
+
+    const handleReviewSubmit = async ({ text, rating }) => {
+        try {
+            const baseUrl = import.meta.env.VITE_BACKEND_URL;
+            // ⭐
+            await axios.post(`http://${baseUrl}/api/public/reviews`, {
+                orderid,
+                optionid,
+                username,
+                imgname: productId,
+                reviewtext: text,
+                rating
+            });
+
+            // ⭐
+            const res = await axios.get(`http://${baseUrl}/api/public/reviewlist/${productId}`); 
+            setReviews(res.data);
+
+            setShowForm(false);
+        }
+        catch(err){
+            console.error("리뷰 등록 실패:", err);
+            // ⭐
+            alert("리뷰 등록에 실패했습니다.");
+        }
+    };
 
     if (loading) {
         return <div>로딩 스켈레톤 UI...</div>; // TODO: 스켈레톤 UI 컴포넌트로 교체
@@ -151,7 +270,7 @@ export default function Detail() {
                 {/* 제품 정보 영역 */}
                 <div className="lg:w-1/2 flex flex-col gap-4">
                     <h1 className="text-2xl font-semibold">{product?.productName}</h1>
-                    <p className="text-xl font-bold mt-2">{product?.price.toLocaleString()} 원</p>
+                    <p className="text-xl font-bold mt-2">{product?.price.toLocaleString()}원</p>
 
                     {/* 컬러 선택 */}
                     <div className="flex items-center gap-4">
@@ -165,16 +284,16 @@ export default function Detail() {
                     <div>
                         <h3 className="text-sm font-medium my-2">사이즈</h3>
                         <div className="flex flex-row gap-7 justify-stretch">
-                            {product?.options?.map(opt => {
+                            {sortedOptions.map(opt => {
                                 const isOutOfStock = opt.stock === 0;
                                 return (
                                     <TailButton
-                                        key={opt.size}
+                                        key={opt.id}
                                         onClick={() => handleSizeClick(opt.size)}
                                         disabled={opt.stock === 0}
                                         className={`flex-1 rounded-md ${opt.stock === 0 ? 'text-gray-400 cursor-not-allowed' : ''}`}
                                     >
-                                        {opt.size.toUpperCase()} {opt.stock === 0 && '(품절)'}
+                                        {opt.size.toUpperCase()} {isOutOfStock === 0 && '(품절)'}
                                     </TailButton>
                                 );
                             })}
@@ -230,6 +349,16 @@ export default function Detail() {
                             </div>
                         </div>
                     ))}
+                    {selectedOptions.length > 0 && (
+                        <div className="text-right mt-3 pr-2">
+                            <span className="text-base font-semibold text-gray-800">
+                                총 금액 {' '}
+                                <span className="text-kalani-navy text-lg">
+                                    {selectedOptions.reduce((sum, opt) => sum + opt.price * opt.quantity, 0).toLocaleString()}원
+                                </span>
+                            </span>
+                        </div>
+                    )}
 
                     <div className='flex w-full items-center'>
                         <div className='w-1/2 pr-3'>
@@ -261,6 +390,17 @@ export default function Detail() {
                         <p>7일 내 무료 반품 가능</p>
                     </div>
 
+                    <div className={`transition-all duration-300 ${errorMsg ? 'mt-6 opacity-100' : 'opacity-0 h-0'}`}>
+                        {errorMsg && (
+                            <div className="px-4 py-3 flex justify-between items-center gap-5 text-sm rounded-lg bg-kalani-creme text-gray-700">
+                                <span>
+                                    <FontAwesomeIcon icon={faCircleExclamation} />&nbsp;
+                                    {errorMsg}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+
                     <AnimatePresence>
                         {isPopupVisible && (
                             <motion.div
@@ -270,7 +410,7 @@ export default function Detail() {
                                 exit={{ opacity: 0, y: 10, scale: 0.9 }}      // 사라질 때 상태 (투명해지고, 약간 아래로 가고, 작아짐)
                                 transition={{ duration: 0.3, ease: "easeInOut" }} // 애니메이션 지속 시간 및 효과
                             >
-                                <CartPopup product={product} selectedSize={selectedSize} />
+                                <CartPopup product={product} selectedOptions={selectedOptions} />
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -303,6 +443,7 @@ export default function Detail() {
                                 <p className="text-sm leading-6 text-gray-700 whitespace-pre-wrap">{product?.description}</p>
                             </div>
                         ) : (
+                            // orderid, username, imgname, optionid, reviewtext, rating(별), createdat
                             <div className="flex">
                                 {/* 리뷰 본문 */}
                                 <div className="flex-1 pl-8">
@@ -310,7 +451,18 @@ export default function Detail() {
                                         <div>
                                             <h2 className="text-xl font-bold">리뷰 <span className="text-2xl ml-2">4.2</span> <span className="text-gray-500 ml-1">— 54 Reviews</span></h2>
                                         </div>
-                                        <button className="border border-gray-300 px-4 py-2 rounded hover:border-gray-700">리뷰 쓰기</button>
+                                        {isLoggedIn && isPurchased && (
+                                            <>
+                                                <button
+                                                    onClick={() => setShowForm(prev => !prev)}
+                                                    className="border border-gray-300 px-4 py-2 rounded hover:border-gray-700"
+                                                >
+                                                    {showForm ? '리뷰 삭제' : '리뷰 쓰기'}
+                                                </button>
+                                                {showForm && <ReviewWriteForm onSubmit={handleReviewSubmit} />}
+                                            </>
+                                        )}
+
                                     </div>
 
                                     {dummyReviews.map(review => (

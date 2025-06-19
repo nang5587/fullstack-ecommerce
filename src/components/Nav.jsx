@@ -12,7 +12,8 @@ import { BiCategoryAlt } from "react-icons/bi";
 // 훅 목록
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from "react-router-dom";
-import { useAuth } from "../context/AuthContext"
+import { useAuth } from "../context/AuthContext";
+import { useCart } from "./CartContext";
 
 export default function Nav() {
     // user 아이콘의 드롭다운 상태 관리 변수 선언
@@ -22,7 +23,9 @@ export default function Nav() {
     const [isCateOpen, setIsCateOpen] = useState(false);
 
     const { isLoggedIn, logout } = useAuth();
-    
+
+    const { cartItems } = useCart();
+
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -94,7 +97,14 @@ export default function Nav() {
 
                         {/* 아이콘 그룹 */}
                         <div className="flex items-center text-2xl text-gray-700 gap-6">
-                            <Link to="/cart" className="hover:text-kalani-gold block cursor-pointer"><RiShoppingBagLine /></Link>
+                            <Link to="/cart" className="relative hover:text-kalani-gold block cursor-pointer">
+                                <RiShoppingBagLine />
+                                {cartItems.length > 0 && (
+                                    <span className="absolute -top-2 -right-2 bg-kalani-navy hover:bg-kalani-gold text-white text-xs w-[18px] h-[18px] rounded-full flex items-center justify-center">
+                                        {cartItems.length}
+                                    </span>
+                                )}
+                            </Link>
                             <div className="relative" onMouseEnter={() => setIsDropdownOpen(true)} onMouseLeave={() => setIsDropdownOpen(false)}>
                                 {/* 사용자 아이콘 */}
                                 <Link to="/mypage" className="hover:text-kalani-gold block cursor-pointer">
@@ -110,7 +120,7 @@ export default function Nav() {
                                         {/* 실제 드롭다운 메뉴 */}
                                         <div className="bg-white rounded-md shadow-nm">
                                             <div className="py-3 text-center">
-                                                { !isLoggedIn && <> <button
+                                                {!isLoggedIn && <> <button
                                                     onClick={() => {
                                                         navigate("/login");
                                                         setIsDropdownOpen(false);
@@ -119,11 +129,11 @@ export default function Nav() {
                                                 >
                                                     로그인
                                                 </button>
-                                                <Link to="/sign" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link></>}
+                                                    <Link to="/sign" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link></>}
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</Link>
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</Link>
                                                 <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">고객센터</Link>
-                                                { isLoggedIn && <button
+                                                {isLoggedIn && <button
                                                     onClick={() => {
                                                         handleLogout();
                                                         setIsDropdownOpen(false);

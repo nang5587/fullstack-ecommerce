@@ -113,7 +113,7 @@ export default function Home() {
             </div>
             {/* 추천 스타일 */}
             <div className="my-30" ref={recommendRef}>
-                <ProductCarousel title="추천 스타일" column="recommendedItems" />
+                <ProductCarousel title="추천 스타일" column="recommend" />
             </div>
 
             {/* LOOKBOOK 섹션 */}

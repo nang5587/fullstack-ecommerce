@@ -6,6 +6,9 @@
 /* ================================================= */
 /* [추가] KALANI 커스텀 유틸리티 클래스            */
 /* ================================================= */
+.react-datepicker__header {
+    background-color: white !important;
+}
 
 /* 배경색 (Background Colors) */
 .bg-kalani-creme {
@@ -46,6 +49,14 @@
 }
 
 /* 텍스트 색상 (Text Colors) */
+.text-kalani-error {
+    @apply text-[var(--kalani-coastal-error)];
+}
+
+.text-kalani-success {
+    @apply text-[var(--kalani-coastal-success)];
+}
+
 .text-kalani-creme {
     @apply text-[var(--kalani-coastal-creme)];
 }
@@ -153,11 +164,25 @@
 }
 
 @keyframes jelly {
-    0% { transform: scale(1, 1); }
-    25% { transform: scale(1.1, 0.9); }
-    50% { transform: scale(0.9, 1.1); }
-    75% { transform: scale(1.05, 0.95); }
-    100% { transform: scale(1, 1); }
+    0% {
+        transform: scale(1, 1);
+    }
+
+    25% {
+        transform: scale(1.1, 0.9);
+    }
+
+    50% {
+        transform: scale(0.9, 1.1);
+    }
+
+    75% {
+        transform: scale(1.05, 0.95);
+    }
+
+    100% {
+        transform: scale(1, 1);
+    }
 }
 
 .shadow-nm {

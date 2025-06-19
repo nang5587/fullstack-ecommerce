@@ -3,11 +3,23 @@ import { faCartPlus, faCheckCircle } from '@fortawesome/free-solid-svg-icons'; /
 
 import TailButton from '../UI/TailButton';
 
-export default function CartPopup({ product, selectedSize }) {
-    // 상품 정보를 실제 객체로 가정하고 구조분해 할당을 사용하면 더 좋습니다.
-    // 예: const { name, color, price } = product;
-    const productName = "나이키 스포츠웨어";
-    const price = 49000;
+// 훅 목록
+import { useNavigate } from 'react-router-dom';
+import { useCart } from './CartContext';
+
+export default function CartPopup({ product, selectedOptions }) {
+    const navigate = useNavigate();
+    const { cartItems } = useCart();
+
+    if (!cartItems.length) return null;
+
+    const recentItem = cartItems[cartItems.length - 1];
+
+    const relatedItems = cartItems.filter(
+        item => item.id === recentItem.id && item.color === recentItem.color && item.name === recentItem.name
+    );
+
+    const totalPrice = relatedItems.reduce((sum, opt) => sum + opt.price * opt.quantity, 0)
 
     return (
         // 전체 컨테이너: 그림자, 둥근 모서리, 패딩으로 입체감과 여백 확보
@@ -25,21 +37,21 @@ export default function CartPopup({ product, selectedSize }) {
             <div className="space-y-3 text-sm">
                 <div className="flex justify-between">
                     <span className="text-gray-500">상품명</span>
-                    <span className="font-medium text-gray-700">{productName}</span>
+                    <span className="font-medium text-gray-700">{recentItem.name}</span>
                 </div>
                 <div className="flex justify-between">
                     <span className="text-gray-500">색상</span>
                     {/* product prop이 문자열일 경우를 대비 */}
-                    <span className="font-medium text-gray-700">{typeof product === 'string' ? product : '선택한 색상'}</span>
+                    <span className="font-medium text-gray-700">{typeof recentItem.color === 'string' ? recentItem.color : '선택한 색상'}</span>
                 </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-500">사이즈</span>
-                    <span className="font-medium text-gray-700">{selectedSize}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span className="text-gray-500">가격</span>
-                    <span className="font-medium text-gray-700">{price.toLocaleString('ko-KR')}원</span>
-                </div>
+                <ul className='space-y-1'>
+                    {relatedItems.map((opt, idx) => (
+                        <li key={idx} className="flex justify-between">
+                            <span className="text-gray-500">사이즈 {opt.size.toUpperCase()} x {opt.quantity}</span>
+                            <span className="text-gray-500">{(opt.price * opt.quantity).toLocaleString()}원</span>
+                        </li>
+                    ))}
+                </ul>
             </div>
 
             <hr className="my-4 border-gray-200" />
@@ -47,11 +59,11 @@ export default function CartPopup({ product, selectedSize }) {
             {/* 3. 총 금액 섹션: 강조를 위해 더 큰 폰트와 굵은 스타일 적용 */}
             <div className="flex justify-between items-center">
                 <span className="text-base font-semibold text-gray-700">총 금액</span>
-                <span className="text-xl font-bold text-kalani-navy">{price.toLocaleString('ko-KR')}원</span>
+                <span className="text-xl font-bold text-kalani-navy">{totalPrice.toLocaleString()}원</span>
             </div>
 
             <div className='flex justify-center items-center pt-4'>
-                <TailButton variant="selGhost" size="sm" onClick={() => {}} className="text-sm/tight">
+                <TailButton variant="selGhost" size="sm" onClick={() => navigate('/cart')} className="text-sm/tight">
                     장바구니 보기
                 </TailButton>
             </div>
