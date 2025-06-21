@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import MyPageLayout from "./MyPageLayout";
 
-// import Orders from "./Orders";
 import OrderList from "./OrderList";
 import WishList from "./WishList";
 import Profile from "./Profile";
@@ -14,7 +13,7 @@ export default function MyPage() {
     const [isLoading, setIsLoading] = useState(true); // 로딩 중인지 여부를 관리할 상태
     const [error, setError] = useState(null); // 에러 상태 관리
     const { '*': tab } = useParams();
-    const selectedTab = tab || 'orders';
+    const selectedTab = tab || 'orderlist';
 
     // 2. useEffect를 사용하여 컴포넌트 마운트 시 데이터 fetching
     useEffect(() => {

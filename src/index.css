@@ -7,7 +7,30 @@
 
 /* ... (기존 @tailwind 지시어 등은 그대로 둡니다) ... */
 
+/* src/index.css */
 
+.mySwiper .swiper-slide {
+  transition: opacity 0.3s ease-in-out;
+  opacity: 0.4; /* 기본적으로 모든 슬라이드를 약간 흐리게 */
+}
+
+.mySwiper .swiper-slide-active {
+  opacity: 1; /* 활성화된(중앙) 슬라이드만 선명하게 */
+}
+
+/* Swiper 네비게이션 버튼 스타일 개선 (선택사항) */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #ffffff !important; /* 아이콘 색상을 흰색으로 */
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50%;
+}
+.swiper-button-next::after,
+.swiper-button-prev::after {
+  font-size: 1.2rem !important; /* 아이콘 크기 조정 */
+}
 /* ================================================== */
 /* ✨ [추가] Kalani WISH PATH 배경 효과          */
 /* ================================================== */
