@@ -32,6 +32,8 @@ export default function Nav() {
         logout();
         navigate('/');
     }
+    const itemsArray = Array.isArray(cartItems) ? cartItems : [];
+
 
     return (
         <>
@@ -99,9 +101,9 @@ export default function Nav() {
                         <div className="flex items-center text-2xl text-gray-700 gap-6">
                             <Link to="/cart" className="relative hover:text-kalani-gold block cursor-pointer">
                                 <RiShoppingBagLine />
-                                {cartItems.length > 0 && (
+                                {itemsArray.length > 0 && (
                                     <span className="absolute -top-2 -right-2 bg-kalani-navy hover:bg-kalani-gold text-white text-xs w-[18px] h-[18px] rounded-full flex items-center justify-center">
-                                        {cartItems.length}
+                                        {itemsArray.length}
                                     </span>
                                 )}
                             </Link>

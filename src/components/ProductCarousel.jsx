@@ -76,7 +76,7 @@ export default function ProductCarousel({ title, column }) {
 
     return (
         <div className="w-full px-4 md:px-10 mb-12 ml-10">
-            <h2 className="text-xl font-bold mb-4">
+            <h2 className="text-xl font-bold mt-10 mb-5">
                 {title}
             </h2>
             <Swiper

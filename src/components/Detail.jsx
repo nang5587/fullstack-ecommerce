@@ -15,10 +15,10 @@ import ColorSwatch from '../UI/ColorSwatch';
 // component 목록
 import CartPopup from './CartPopup';
 import colorMap from '../local/colorMap';
-import ReviewWriteForm from './ReviewWriteForm';
+import ReviewPage from './ReviewPage';
 
 // 애니메이션 효과
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, isPrimaryPointer, motion } from 'framer-motion';
 
 // 이미지 줌
 import InnerImageZoom from 'react-inner-image-zoom';
@@ -30,12 +30,10 @@ import { BsHeart, BsHeartFill } from 'react-icons/bs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 
-
 export default function Detail() {
     // url로 날아오는 이미지 번호 넣을 변수
-    const { productId } = useParams();
-    const { addToCart } = useCart();
-
+    const { productId } = useParams(); //imgname
+    const { bulkAddToCart } = useCart();
     // useState
     const [mainImage, setMainImage] = useState(null);
     const [thumbnails, setThumbnails] = useState([]);
@@ -51,6 +49,7 @@ export default function Detail() {
     const [reviews, setReviews] = useState([]);
     const [reviewLoading, setReviewLoading] = useState(true);
     const [reviewError, setReviewError] = useState(null);
+    const [showForm, setShowForm] = useState(false);
 
     // 상품가져오는 변수
     const [error, setError] = useState(null);
@@ -111,38 +110,38 @@ export default function Detail() {
     }, [productId]);
 
     // 구매 확인 useEffect
-    useEffect(() => {
-        const checkPurchased = async () => {
-            if (!isLoggedIn || !username || !productId) return;
-            try {
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await axios.get(`http://${baseUrl}/api/private/purchased/${username}/${productId}`);
-                setIsPurchased(res.data === true); // 백엔드 응답 형태에 따라 조정
-            } catch (err) {
-                console.error('구매 여부 확인 실패:', err);
-            }
-        };
-        checkPurchased();
-    }, [isLoggedIn, username, productId]);
+    // useEffect(() => {
+    //     const checkPurchased = async () => {
+    //         if (!isLoggedIn || !username || !productId) return;
+    //         try {
+    //             const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    //             const res = await axios.get(`http://${baseUrl}/api/private/purchased/${username}/${productId}`);
+    //             setIsPurchased(res.data === true); // 백엔드 응답 형태에 따라 조정
+    //         } catch (err) {
+    //             console.error('구매 여부 확인 실패:', err);
+    //         }
+    //     };
+    //     checkPurchased();
+    // }, [isLoggedIn, username, productId]);
 
     // 리뷰 리스트 useEffect
-    useEffect(() => {
-        const fetchReviews = async () => {
-            try {
-                setReviewLoading(true);
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await axios.get(`http://${baseUrl}/api/public/reviews/${productId}`);
-                setReviews(res.data); // ← 서버 응답 형태에 따라 조정
-            } catch (err) {
-                console.error("리뷰 데이터를 불러오는 데 실패함: ", err);
-                setReviewError(err);
-            } finally {
-                setReviewLoading(false);
-            }
-        };
+    // useEffect(() => {
+    //     const fetchReviews = async () => {
+    //         try {
+    //             setReviewLoading(true);
+    //             const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    //             const res = await axios.get(`http://${baseUrl}/api/public/reviews/${productId}`);
+    //             setReviews(res.data); // ← 서버 응답 형태에 따라 조정
+    //         } catch (err) {
+    //             console.error("리뷰 데이터를 불러오는 데 실패함: ", err);
+    //             setReviewError(err);
+    //         } finally {
+    //             setReviewLoading(false);
+    //         }
+    //     };
 
-        fetchReviews();
-    }, [productId]);
+    //     fetchReviews();
+    // }, [productId]);
 
 
     const handleSizeClick = (size) => {
@@ -173,19 +172,24 @@ export default function Detail() {
             }, 2000);
             return;
         }
-        selectedOptions.forEach((opt) => {
-            addToCart({
-                id: opt.optionid,
-                name: product.productName,
-                price: opt.price,
-                color: product.color,
-                size: opt.size,
-                quantity: opt.quantity,
-                imageSrc: thumbnails[0]?.small || '', // 대표 이미지 (없으면 공백)
-                imageAlt: `${product.productName} - ${product.color}`,
-            })
+        const itemsToAdd = selectedOptions.map((opt) => ({
+            imgname: product.imgname,
+            optionid: opt.optionid,
+            productName: product.productName,
+            price: opt.price,
+            color: product.color,
+            size: opt.size,
+            quantity: opt.quantity,
+            imgUrl: `${product.imgname.slice(0, 3)}/${product.imgname}_main.jpg`,  // 예: "300/300024063_main.jpg"
+            imageAlt: `${product.productName} - ${product.color}`,
         })
-        console.log('들어간거 : ', selectedOptions)
+        )
+        console.log('itemsToAdd:', itemsToAdd);
+        console.log('bulkAddToCart 직전 cartItems 타입:', Array.isArray(itemsToAdd), itemsToAdd);
+        bulkAddToCart(itemsToAdd);
+        console.log('bulkAddToCart 직전 cartItems 타입:', Array.isArray(itemsToAdd), itemsToAdd);
+
+        console.log('들어간거 : ', itemsToAdd)
         setSelectedOptions([]);
 
         setIsPopupVisible(true);
@@ -194,31 +198,6 @@ export default function Detail() {
         }, 2000); // 2초 후 사라짐
     }
 
-    const handleReviewSubmit = async ({ text, rating }) => {
-        try {
-            const baseUrl = import.meta.env.VITE_BACKEND_URL;
-            // ⭐
-            await axios.post(`http://${baseUrl}/api/public/reviews`, {
-                orderid,
-                optionid,
-                username,
-                imgname: productId,
-                reviewtext: text,
-                rating
-            });
-
-            // ⭐
-            const res = await axios.get(`http://${baseUrl}/api/public/reviewlist/${productId}`); 
-            setReviews(res.data);
-
-            setShowForm(false);
-        }
-        catch(err){
-            console.error("리뷰 등록 실패:", err);
-            // ⭐
-            alert("리뷰 등록에 실패했습니다.");
-        }
-    };
 
     if (loading) {
         return <div>로딩 스켈레톤 UI...</div>; // TODO: 스켈레톤 UI 컴포넌트로 교체
@@ -288,7 +267,7 @@ export default function Detail() {
                                 const isOutOfStock = opt.stock === 0;
                                 return (
                                     <TailButton
-                                        key={opt.id}
+                                        key={opt.optionid}
                                         onClick={() => handleSizeClick(opt.size)}
                                         disabled={opt.stock === 0}
                                         className={`flex-1 rounded-md ${opt.stock === 0 ? 'text-gray-400 cursor-not-allowed' : ''}`}
@@ -442,57 +421,10 @@ export default function Detail() {
                             <div className="space-y-3 text-sm leading-6 text-gray-700">
                                 <p className="text-sm leading-6 text-gray-700 whitespace-pre-wrap">{product?.description}</p>
                             </div>
-                        ) : (
+                        ) : selectedTab === 'review' ? (
                             // orderid, username, imgname, optionid, reviewtext, rating(별), createdat
-                            <div className="flex">
-                                {/* 리뷰 본문 */}
-                                <div className="flex-1 pl-8">
-                                    <div className="flex justify-between items-center mb-6">
-                                        <div>
-                                            <h2 className="text-xl font-bold">리뷰 <span className="text-2xl ml-2">4.2</span> <span className="text-gray-500 ml-1">— 54 Reviews</span></h2>
-                                        </div>
-                                        {isLoggedIn && isPurchased && (
-                                            <>
-                                                <button
-                                                    onClick={() => setShowForm(prev => !prev)}
-                                                    className="border border-gray-300 px-4 py-2 rounded hover:border-gray-700"
-                                                >
-                                                    {showForm ? '리뷰 삭제' : '리뷰 쓰기'}
-                                                </button>
-                                                {showForm && <ReviewWriteForm onSubmit={handleReviewSubmit} />}
-                                            </>
-                                        )}
-
-                                    </div>
-
-                                    {dummyReviews.map(review => (
-                                        <div key={review.id} className="border-b border-gray-300 py-6 flex gap-4">
-                                            {/* 프로필 */}
-                                            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600">
-                                                {review.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                                            </div>
-
-                                            {/* 내용 */}
-                                            <div className="flex-1">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="font-medium">{review.name}</div>
-                                                    <div className="text-sm text-gray-400">{review.date}</div>
-                                                </div>
-                                                <p className="text-gray-700 mt-2">{review.content}</p>
-                                                <div className="text-yellow-500 mt-1">
-                                                    {'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    <div className="mt-6 text-center">
-                                        <button className="px-4 py-2 border border-gray-300 rounded hover:border-gray-700">더 많은 리뷰 보기</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                        )}
+                            <ReviewPage isLoggedIn={isLoggedIn} productId={productId} username={username} />
+                        ) : null}
                     </div>
                 </div>
             </div>

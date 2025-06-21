@@ -5,7 +5,7 @@ import TailButton from "../UI/TailButton";
 // 훅 목록
 import { useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext"
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 // 아이콘 목록
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -15,6 +15,9 @@ import { FcGoogle } from 'react-icons/fc';
 export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+    const redirect = new URLSearchParams(location.search).get('redirect');
+
     // 로그인 관리 변수
     const [username, setusername] = useState("");
     const [password, setPassword] = useState("");
@@ -40,6 +43,16 @@ export default function Login() {
         }
 
         setLoading(true);
+
+        const isMock = import.meta.env.VITE_DEV_FAKE_LOGIN === 'true';
+        if (isMock) {
+            const fakeToken = "test-dev-token";
+            localStorage.setItem('accessToken', fakeToken);
+            login(fakeToken);
+            navigate(redirect || "/");
+            return;
+        }
+
         try {
             const baseUrl = import.meta.env.VITE_BACKEND_URL;
             const response = await fetch(`http://${baseUrl}/api/public/login`, {
@@ -56,7 +69,7 @@ export default function Login() {
                 const headers = response.headers;
 
                 // 'Authorization' 헤더에서 토큰 값을 추출합니다.
-                let authToken = headers.get('authorization');
+                let authToken = headers.get('Authorization');
 
                 // 헤더에 토큰이 있는지 확인하고 로컬 스토리지에 저장합니다.
                 if (authToken) {
@@ -64,8 +77,8 @@ export default function Login() {
                     localStorage.setItem('accessToken', authToken);
                     console.log('로그인 성공! 토큰을 저장했습니다.');
                     // 여기서 로그인 후 다음 페이지로 이동하는 등의 로직을 추가할 수 있습니다.
-                    login();
-                    navigate("/");
+                    login(authToken);
+                    navigate(redirect || "/");
                 } else {
                     console.error('응답 헤더에 토큰이 없습니다.');
                 } // 새로고침 안 해서 부드러운 이동
@@ -81,6 +94,12 @@ export default function Login() {
         }
     };
 
+    const handleKeyDown = (event) => {
+        // 눌린 키가 'Enter'이고, 로딩 중이 아닐 때만 로그인 함수를 호출합니다.
+        if (event.key === 'Enter' && !loading) {
+            handleLogin();
+        }
+    }
     // const baseUrl = import.meta.env.VITE_BACKEND_URL;
     // const handleNaverLogin = () => {
     //     window.location.href = `http://${baseUrl}/oauth2/authorization/naver`;
@@ -104,8 +123,8 @@ export default function Login() {
                     </p>
 
                     <div className="flex flex-col gap-5">
-                        <TailInput label="아이디" type="text" value={username} onChange={(e) => setusername(e.target.value)} ref={usernameRef} />
-                        <TailInput label="비밀번호" type="password" value={password} onChange={(e) => setPassword(e.target.value)} ref={passwordRef} />
+                        <TailInput label="아이디" type="text" value={username} onChange={(e) => setusername(e.target.value)} ref={usernameRef} onKeyDown={handleKeyDown} />
+                        <TailInput label="비밀번호" type="password" value={password} onChange={(e) => setPassword(e.target.value)} ref={passwordRef} onKeyDown={handleKeyDown} />
                     </div>
 
                     <div className="flex justify-end gap-4 mt-3 text-sm text-kalani-taupe font-medium">

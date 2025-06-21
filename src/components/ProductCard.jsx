@@ -18,12 +18,12 @@ export default function ProductCard({ product }) {
         <div className="group w-full flex-shrink-0"> {/* w-64: 너비 고정, flex-shrink-0: 줄어들지 않음 */}
             <Link to={`/detail/${productCode}`} className="block">
                 {/* 상품 이미지 영역 */}
-                <div className="w-full aspect-[3/4] overflow-hidden bg-gray-200">
+                <div className="w-full aspect-[3/4] overflow-hidden bg-gray-200 rounded-lg">
                     <img
                         src={imgUrl}
                         alt={product.productName}
                         onError={(e) => { e.target.src = 'src/assets/위츄.jpeg'; }}
-                        className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
+                        className="h-full w-full object-cover object-center transition-transform duration-300 group-hover:scale-105 rounded"
                     />
                 </div>
 

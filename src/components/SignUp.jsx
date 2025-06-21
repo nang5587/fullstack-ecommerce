@@ -145,7 +145,9 @@ export default function SignUp() {
         // 백엔드에 보낼 데이터 구성
         const payload = {
             ...formData,
-            birth: formData.birth ? formData.birth.toString().slice(0, 10) : '',
+            birth: formData.birth instanceof Date
+                ? formData.birth.toISOString().slice(0, 10)
+                : '',
             phone: formattedPhoneNumber,
             role: 'ROLE_MEMBER', // 일반 사용자는 ROLE_USER, 관리자는 별도 처리
         };

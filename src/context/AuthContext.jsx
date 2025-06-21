@@ -10,6 +10,7 @@ export function AuthProvider({ children }) {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
     const [username, setUsername] = useState('');
 
+
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -25,11 +26,16 @@ export function AuthProvider({ children }) {
     }, []);
 
     // 로그인 함수 (실제로는 API 호출 후 성공 시 호출)
-    const login = () => {
+    const login = (token) => {
         try {
+            console.log("1")
             const decoded = jwtDecode(token);
+            console.log("2")
+            console.log(decoded)
             localStorage.setItem('accessToken', token);
+            console.log("3")
             setUsername(decoded.username);
+            console.log("4")
             setIsLoggedIn(true);
         } catch (err) {
             console.error('로그인 실패: 잘못된 토큰', err);
@@ -38,7 +44,9 @@ export function AuthProvider({ children }) {
 
     // 로그아웃 함수
     const logout = () => {
-        localStorage.removeItem('accessToken'); // 로그아웃 시 토큰 제거
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('cart'); // 로그아웃 시 토큰 제거
+        localStorage.removeItem('orderItems'); // 로그아웃 시 토큰 제거
         setUsername('');
         setIsLoggedIn(false);
     };

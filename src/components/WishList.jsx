@@ -1,99 +1,80 @@
+// src/components/WishList.jsx
+
 // 훅 목록
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import wishdata from '../data/wishdata';
 
-// UI 목록
-import TailButton from '../UI/TailButton';
+// component 목록
+import WishCard from './WishCard';
+import WavyLayoutFinal from './WavyLayoutFinal';
 
-const initialItems = [ // imgname, username, size 삭제, 수량 삭제
-    {
-        id: 1,
-        name: 'Raw Black T-Shirt', // productName
-        color: 'Green',
-        size: 'M',
-        price: 75000,
-        quantity: 1,
-        imageSrc: 'src/assets/items/0116379047.jpg',
-        imageAlt: '검은색 티셔츠',
-    },
-    {
-        id: 2,
-        name: 'Essential Neutrals',
-        color: 'Purple',
-        size: 'M',
-        price: 22000,
-        quantity: 1,
-        imageSrc: 'src/assets/items/0163734002.jpg',
-        imageAlt: '흰색 티셔츠',
-    },
-];
+// ✨ 이 컴포넌트들을 WishList.jsx 파일 안에 함께 정의합니다.
+//    또는 별도의 파일로 분리하고 import 해도 됩니다.
+function BackgroundLayers() {
+    return (
+        <>
+            {/* 빛 효과 레이어 */}
+            <div 
+                className="
+                    absolute top-0 left-1/2 -translate-x-1/2 
+                    w-[200%] h-[1000px] /* ✨ 범위를 더 넓게 */
+                    bg-radial-gradient-t
+                    blur-3xl /* ✨ 블러 효과 추가로 경계를 완전히 뭉갬 */
+                    opacity-80 /* ✨ 투명도 조절 */
+                "
+            />
+            
+            {/* 물결 SVG 레이어들 */}
+            <Wave className="absolute bottom-0 left-0 w-[200%] h-auto text-kalani-gold/10 animate-wave-slow" />
+            <Wave className="absolute bottom-0 left-0 w-[200%] h-auto text-kalani-gold/20 animate-wave-medium" style={{ bottom: '-5px' }} />
+            <Wave className="absolute bottom-0 left-0 w-[200%] h-auto text-kalani-gold/30 animate-wave-fast" style={{ bottom: '-10px' }} />
+        </>
+    );
+}
+
+function Wave({ className, ...props }) {
+    const wavePath = "M0,160L48,181.3C96,203,192,245,288,240C384,235,480,181,576,149.3C672,117,768,107,864,128C960,149,1056,203,1152,213.3C1248,224,1344,192,1392,176L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z";
+    return (
+        <div className={className} {...props}>
+            <svg className="w-1/2 h-auto inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="currentColor" fillOpacity="1" d={wavePath}></path></svg>
+            <svg className="w-1/2 h-auto inline-block" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="currentColor" fillOpacity="1" d={wavePath}></path></svg>
+        </div>
+    );
+}
+
 
 export default function WishList() {
-    const [items, setItems] = useState(initialItems);
-    const [animate, setAnimate] = useState(false);
-
-    useEffect(() => {
-        setAnimate(true);
-
-        const timer = (() => {
-            setAnimate(false);
-        }, 600);
-
-        return () => clearTimeout(timer);
-    }, []);
-
     return (
-        <div className='w-10/12 ml-20'>
-            <h1 id='font4' className='text-kalani-navy font-bold text-2xl pb-10'>위시리스트</h1>
-            {items.length === 0 ? (
-                <div className="text-center py-16 border-t border-gray-200">
-                    <p className="text-gray-500">
-                        위시리스트가 비어있어요.<br />
-                        아직 발견하지 못한 보물들이 기다리고 있어요.</p>
-                    <Link to="/" className="mt-4 inline-block text-kalani-gold font-medium text-sm hover:underline">
-                        <p className={`${animate ? 'animate-[jelly_0.6s]' : ''}`}>쇼핑 계속하기</p>
-                    </Link>
+        // 1. 가장 바깥쪽 레이아웃은 그대로 유지합니다.
+        <div className="w-11/12 ml-20">
+            {/* 2. 기존 p-8과 배경색을 가진 div를 relative 컨테이너로 만듭니다. */}
+            <div className="relative overflow-hidden bg-kalani-navy to-[#001833] min-h-screen with-palm-leaves">
+                
+                {/* BackgroundLayers 컴포넌트는 그대로 두거나, 빛 효과 부분만 주석 처리해도 됩니다. */}
+                <BackgroundLayers />
+                
+                {/* 4. 기존 콘텐츠들을 담을 div를 추가하고, z-10으로 위에 오게 합니다. */}
+                <div className="relative z-10 p-8">
+                    {/* 제목의 색상을 흰색으로 변경하고, border 투명도를 조절합니다. */}
+                    <h2 id="font3" className="text-3xl text-white font-bold pb-6 border-b border-gray-200/30">WISH LIST</h2>
+
+                    <div className="mt-8"> {/* 제목과의 간격을 위해 마진 추가 */}
+                        <WavyLayoutFinal
+                            childWidth={256}
+                            childHeight={470}
+                            verticalStep={250}
+                        >
+                            {wishdata.map(item => (
+                                <WishCard
+                                    key={item.id}
+                                    imageUrl={item.image}
+                                    name={item.name}
+                                    createdat={item.date}
+                                />
+                            ))}
+                        </WavyLayoutFinal>
+                    </div>
                 </div>
-            ) : (
-                <ul className="divide-y border-y border-gray-300 divide-gray-300">
-                    {items.map((item) => (
-                        <li key={item.id} className="flex py-6 sm:py-8">
-                            <div className="flex-shrink-0">
-                                <Link to={`/detail/${item.id}`}>
-                                    <img
-                                        src={item.imageSrc}
-                                        alt={item.imageAlt}
-                                        className="h-24 w-24 rounded-md object-cover object-center sm:h-32 sm:w-32"
-                                    />
-                                </Link>
-                            </div>
-
-                            <div className="ml-4 flex flex-1 flex-col justify-between sm:ml-6">
-                                <div className="flex justify-between h-full">
-                                    {/* 왼쪽 섹션: 상품 정보 */}
-                                    <div>
-                                        <h3 className="text-base font-medium">
-                                            <Link to={`/detail/${item.id}`} className="text-kalani-ash hover:text-kalani-gold">
-                                                {item.name}
-                                            </Link>
-                                        </h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            색상: {item.color}, 사이즈: {item.size}
-                                        </p>
-                                    </div>
-
-                                    {/* 오른쪽 섹션: 수량 및 가격 */}
-                                    <div className="flex flex-col items-end space-y-2 justify-center">
-                                        <TailButton variant="selGhost" onClick={() => { }}>
-                                            장바구니 담기
-                                        </TailButton>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
-            )}
+            </div>
         </div>
-    )
+    );
 }

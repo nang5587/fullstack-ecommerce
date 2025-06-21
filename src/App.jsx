@@ -24,6 +24,8 @@ import SignUpSuccess from './components/SignUpSuccess';
 import Login from "./components/Login";
 
 import MyPage from './components/MyPage';
+import VerifyPassword from './components/VerifyPassword';
+import EditMemberInfo from './components/EditMemberInfo';
 
 import Test from './components/Test';
 
@@ -50,7 +52,9 @@ function App() {
               <Route path="/sign" element={<SignUp />} />
               <Route path="/signup-success" element={<SignUpSuccess />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/mypage" element={<MyPage />} />
+              <Route path="/mypage/*" element={<MyPage />} />
+              <Route path="/mypage/verify" element={<VerifyPassword />} />
+              <Route path="/mypage/edit" element={<EditMemberInfo />} />
               <Route path="/color" element={<ColorPaletteTest />} />
               <Route path="/test" element={<Test />} />
             </Routes>

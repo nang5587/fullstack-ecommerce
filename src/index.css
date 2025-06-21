@@ -3,11 +3,107 @@
 /* 1. Tailwind의 스타일을 가져옵니다. */
 @import "tailwindcss";
 
+/* src/index.css */
+
+/* ... (기존 @tailwind 지시어 등은 그대로 둡니다) ... */
+
+
+/* ================================================== */
+/* ✨ [추가] Kalani WISH PATH 배경 효과          */
+/* ================================================== */
+
+/* 1. 빛 효과 그라데이션 */
+/* 이 클래스를 WishList.jsx의 빛 효과 div에 적용합니다. */
+.bg-radial-gradient-t {
+    /* ✨ 흰색 대신, 더 부드러운 푸른 계열의 빛으로 변경 */
+    background-image: radial-gradient(ellipse at top, rgba(75, 108, 193, 0.2), transparent 70%);
+}
+
+/* 2. 물결 애니메이션 (Keyframes) */
+/* 이 애니메이션을 아래 클래스들에서 사용합니다. */
+@keyframes wave-flow {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%); /* SVG를 2개 이어붙여서 -50%까지만 이동하면 자연스럽게 연결됩니다. */
+  }
+}
+
+/* 3. 물결 애니메이션 적용 클래스 */
+/* 이 클래스들을 WishList.jsx의 Wave SVG에 적용합니다. */
+.animate-wave-slow {
+  animation: wave-flow 30s linear infinite;
+}
+.animate-wave-medium {
+  animation: wave-flow 20s linear infinite reverse;
+}
+.animate-wave-fast {
+  animation: wave-flow 15s linear infinite;
+}
+
+/* ================================================== */
+/* ✨ [추가] Kalani 야자수 잎 포인트 효과         */
+/* ================================================== */
+
+.with-palm-leaves {
+    position: relative;
+    z-index: 0; /* z-index 컨텍스트 생성 */
+}
+
+/* 왼쪽 상단 야자수 잎 */
+.with-palm-leaves::before {
+    content: '';
+    position: absolute;
+    top: -150px;       /* 위쪽으로 삐져나가게 */
+    left: -200px;      /* 왼쪽으로 삐져나가게 */
+    width: 600px;
+    height: 600px;
+    background-image: url('/wishImgs/josh.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    transform: rotate(-15deg); /* 살짝 회전 */
+    filter: brightness(0);
+    z-index: 5;  /* 콘텐츠(z-10)보다는 뒤에, 배경(z-1)보다는 앞에 */
+    pointer-events: none; /* 마우스 클릭 방해 방지 */
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+/* 오른쪽 하단 야자수 잎 */
+.with-palm-leaves::after {
+    content: '';
+    position: absolute;
+    bottom: 50px;   /* 아래쪽으로 삐져나가게 */
+    right: -250px;     /* 오른쪽으로 삐져나가게 */
+    width: 700px;
+    height: 700px;
+    background-image: url('/wishImgs/josh.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    filter: brightness(0);
+    z-index: 5;
+    pointer-events: none;
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+/* (선택) 마우스를 올렸을 때 미세하게 움직이는 효과 */
+.with-palm-leaves:hover::before {
+    transform: scale(1.08);
+}
+.with-palm-leaves:hover::after {
+    transform: scale(1.08);
+}
+
 /* ================================================= */
 /* [추가] KALANI 커스텀 유틸리티 클래스            */
 /* ================================================= */
 .react-datepicker__header {
     background-color: white !important;
+}
+
+/* ✨ 여기에 새로운 클래스를 추가합니다. */
+.hover\:bg-kalani-gold-20:hover {
+    @apply bg-[var(--kalani-coastal-gold)]/20;
 }
 
 /* 배경색 (Background Colors) */
@@ -152,7 +248,7 @@
 
 .img-hovered {
     transform: scale(1.08);
-    filter: drop-shadow(0 4px 10px rgb(255, 255, 255));
+    /* filter: drop-shadow(0 4px 10px rgb(255, 255, 255)); */
     will-change: transform;
     z-index: 10;
     transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -204,3 +300,20 @@
 /* .text-glow {
   text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
 } */
+
+.hover-scale-image {
+  @apply transition-transform duration-300 ease-in-out hover:scale-105;
+}
+
+.lookbook-image {
+  width: 100%;
+  max-width: 400px; /* 기본 최대 크기 */
+  transition: width 0.3s ease;
+}
+
+/* 화면이 xl 이상일 때는 고정 크기 유지 */
+@media (min-width: 1280px) {
+  .lookbook-image {
+    width: 400px;
+  }
+}

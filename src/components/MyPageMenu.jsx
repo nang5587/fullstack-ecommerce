@@ -1,11 +1,19 @@
 import { FiUser, FiHeart } from 'react-icons/fi';
 import { RiShoppingBagLine } from 'react-icons/ri';
+import { HiOutlineLocationMarker } from "react-icons/hi";
+import { FaRegCommentDots } from "react-icons/fa";
+import { FiHelpCircle } from "react-icons/fi";
+
+
 
 export default function MyPageMenu({ selectedTab, onChangeTab }) {
     const tabs = [
-        { id: 'orders', label: '주문목록', icon: <RiShoppingBagLine /> },
+        { id: 'orderlist', label: '주문목록', icon: <RiShoppingBagLine /> },
         { id: 'wishlist', label: '위시리스트', icon: <FiHeart /> },
         { id: 'profile', label: '회원정보', icon: <FiUser /> },
+        { id: 'address', label: '배송주소', icon: <HiOutlineLocationMarker /> },
+        { id: 'myreview', label: '마이리뷰', icon: <FaRegCommentDots /> },
+        { id: 'myqna', label: 'Q&A', icon: <FiHelpCircle /> },
     ];
 
     const onChange = (id) => {

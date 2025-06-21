@@ -195,7 +195,7 @@ export default function SearchListing() {
                         <div className="col-span-full text-center py-20 text-gray-500 font-medium">
                             '{keyword}'에 대한 검색 결과가 없습니다.
                         </div>
-                    )}
+                    )} 
 
                     {filteredProducts.map(product => (
                         <ProductCard key={product.imgname || product.fullcode} product={product} />

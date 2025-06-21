@@ -1,6 +1,6 @@
 import React from "react";
 
-const TailInput = React.forwardRef(({ label, type, value, onChange }, ref) => {
+const TailInput = React.forwardRef(({ label, type, value, onChange , onKeyDown }, ref) => {
     return (
         <div>
             <label
@@ -17,6 +17,7 @@ const TailInput = React.forwardRef(({ label, type, value, onChange }, ref) => {
                     required
                     value={value}
                     onChange={onChange}
+                    onKeyDown={onKeyDown}
                     ref={ref}  // forwardRef 덕분에 여기 ref가 제대로 전달됨
                     autoComplete={type}
                     className="

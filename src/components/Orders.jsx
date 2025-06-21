@@ -5,29 +5,6 @@ import { Link } from 'react-router-dom';
 // UI 목록
 import TailButton from '../UI/TailButton';
 
-const initialItems = [
-    // {
-    //     id: 1,
-    //     name: 'Raw Black T-Shirt',
-    //     color: 'Green',
-    //     size: 'M',
-    //     price: 75000,
-    //     quantity: 1,
-    //     imageSrc: 'src/assets/items/0116379047.jpg',
-    //     imageAlt: '검은색 티셔츠',
-    // },
-    // {
-    //     id: 2,
-    //     name: 'Essential Neutrals',
-    //     color: 'Purple',
-    //     size: 'M',
-    //     price: 22000,
-    //     quantity: 1,
-    //     imageSrc: 'src/assets/items/0163734002.jpg',
-    //     imageAlt: '흰색 티셔츠',
-    // },
-];
-
 export default function Orders() {
     const [items, setItems] = useState(initialItems);
     const [animate, setAnimate] = useState(false);
