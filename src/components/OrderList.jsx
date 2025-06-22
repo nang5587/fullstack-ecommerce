@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import orderListDummy from "../data/orderListDummy";
 import DateCarousel from "./DateCarousel";
 import DateFilter from "./DateFilter";
 import { format } from 'date-fns';
+
+import api from '../api/axios'
 
 // 날짜 계산
 import { subDays, startOfDay, endOfDay } from 'date-fns';
@@ -17,7 +19,7 @@ function BackgroundLayers() {
             <img
                 src="/wishImgs/sun.png"
                 alt="Rotating sun"
-                className="absolute -top-45 -right-45 w-[500px] h-[500px] opacity-70 animate-spin-slow z-10"
+                className="absolute -top-50 -right-50 w-[500px] h-[500px] opacity-70 animate-spin-slow z-10"
             />
 
             {/* 물결 SVG 레이어들 (흰색 계열로 색상 변경) */}
@@ -40,14 +42,30 @@ function Wave({ className, ...props }) {
 }
 
 export default function OrderList() {
+    const [orders, setOrders] = useState([]);
     // 2. 선택된 아이템을 저장할 상태를 만듭니다.
     const [selectedItem, setSelectedItem] = useState(null);
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [activePreset, setActivePreset] = useState('전체');
 
+    // 전체 목록 가져오기
+    // const fetchOrders = useCallback(async () => {
+    //     try {
+    //         const res = await api.get('/api/⭐');
+    //         setOrders(res.data);
+    //         console.log("백앤드로 받은 주문내역 : ", orders);
+    //     } catch (e) {
+    //         console.error('주문 목록 불러오기 실패:', e);
+    //     }
+    // }, []);
+
+    // useEffect(() => {
+    //     fetchOrders();
+    // }, [fetchOrders]);
+
     const dailyTotals = useMemo(() => {
-        return orderListDummy.reduce((acc, order) => {
+        return orderListDummy.reduce((acc, order) => { // ⭐ orderListDummy => orders
             const date = order.orderInfo.orderdate;
             const total = order.orderInfo.total;
             acc[date] = (acc[date] || 0) + total;
@@ -63,7 +81,7 @@ export default function OrderList() {
 
     const groupedByDate = useMemo(() => {
         // ✅ 4. 필터링 로직을 그룹화 이전에 먼저 적용합니다.
-        const filteredOrders = orderListDummy.filter(order => {
+        const filteredOrders = orderListDummy.filter(order => { // ⭐ orderListDummy => orders
             // 시작일이나 종료일이 없으면 필터링하지 않음 (전체 보기)
             if (!startDate || !endDate) return true;
 
@@ -89,7 +107,7 @@ export default function OrderList() {
         return Object.values(groups).sort(
             (a, b) => new Date(b.date) - new Date(a.date)
         );
-    }, [startDate, endDate]);
+    }, [orders, startDate, endDate]);
 
     // 4. 카드를 클릭했을 때 실행될 함수.
     const handleItemSelect = (item) => {
@@ -146,6 +164,16 @@ export default function OrderList() {
         setActivePreset(preset);
     };
 
+    const handleCancelOrder = async (orderid) => {
+        try {
+            console.log('백앤드로 보낼 주문취소건 : ', )
+            await api.patch('/api/⭐', { orderid });
+            await fetchOrders();
+        } catch (error) {
+            console.error('주문 취소 실패:', error);
+        }
+    };
+
     // 컴포넌트가 처음 렌더링될 때 '전체' 프리셋을 기본으로 설정
     React.useEffect(() => {
         handlePresetClick('전체');
@@ -163,7 +191,7 @@ export default function OrderList() {
                 <div className="relative z-10 p-8">
                     {/* 4. 밝은 배경에 맞게 제목 텍스트 색상을 어둡게 변경합니다. */}
                     <h2 id="font3" className="text-3xl text-kalani-navy font-bold pb-6 border-b border-gray-400/30">ORDER LIST</h2>
-                    <div className="relative z-10">
+                    <div className="relative z-10 flex justify-center">
                         <DateFilter
                             startDate={startDate}
                             endDate={endDate}
@@ -183,6 +211,7 @@ export default function OrderList() {
                                 items={group.items}
                                 selectedItem={selectedItem}
                                 onItemSelect={handleItemSelect}
+                                onCancel={handleCancelOrder}
                             />
                         ))}
                         {/* ✅ 8. 필터링 결과 주문이 없을 때 표시할 메시지 */}

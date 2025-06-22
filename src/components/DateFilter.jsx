@@ -63,7 +63,7 @@ export default function DateFilter({
 }
 
     return (
-        <div className="flex flex-col md:flex-row items-center justify-between mb-8 p-4 bg-white/50 rounded-xl mt-4">
+        <div className="flex flex-col md:flex-row items-center justify-between mb-8 p-4  rounded-xl mt-4">
             <div className="flex items-center space-x-2 mb-4 md:mb-0">
                 <div className='flex gap-2 items-center'> {/* ✅ items-center 추가 */}
                     {presets.map(preset => (
@@ -71,7 +71,7 @@ export default function DateFilter({
                             key={preset}
                             onClick={() => onPresetClick(preset)}
                             className={`px-4 py-2 text-sm font-semibold rounded-sm transition-all duration-200 ${activePreset === preset
-                                ? 'bg-black text-white border-black'
+                                ? 'bg-black text-white'
                                 : ''
                                 }`}
                         >
@@ -115,7 +115,7 @@ export default function DateFilter({
                 </div>
             </div>
             {/* 이 부분은 그대로 유지 */}
-            <div>
+            <div className='ml-5'>
                 <DatePicker
                     // ✅ 1. "시각화 전용" 달력을 위한 className 추가
                     calendarClassName="visual-only-calendar"

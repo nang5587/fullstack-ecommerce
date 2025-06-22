@@ -1,14 +1,15 @@
-// src/components/WishList.jsx
+// ⭐ 더미
+import wishdata from '../data/wishdata';
 
 // 훅 목록
-import wishdata from '../data/wishdata';
+import { useState } from 'react';
 
 // component 목록
 import WishCard from './WishCard';
 import WavyLayoutFinal from './WavyLayoutFinal';
 
-// ✨ 이 컴포넌트들을 WishList.jsx 파일 안에 함께 정의합니다.
-//    또는 별도의 파일로 분리하고 import 해도 됩니다.
+import api from "../api/axios";
+
 function BackgroundLayers() {
     return (
         <>
@@ -16,10 +17,10 @@ function BackgroundLayers() {
             <div 
                 className="
                     absolute top-0 left-1/2 -translate-x-1/2 
-                    w-[200%] h-[1000px] /* ✨ 범위를 더 넓게 */
+                    w-[200%] h-[1000px]
                     bg-radial-gradient-t
-                    blur-3xl /* ✨ 블러 효과 추가로 경계를 완전히 뭉갬 */
-                    opacity-80 /* ✨ 투명도 조절 */
+                    blur-3xl
+                    opacity-80
                 "
             />
             
@@ -43,32 +44,56 @@ function Wave({ className, ...props }) {
 
 
 export default function WishList() {
+    
+    const [wishes, setWishes] = useState([]);
+
+    // useEffect(() => {
+    //     const fetchWishlist = async () => {
+    //         try {
+    //             const response = await api.get('/api/⭐');
+    //             console.log("백앤드로부터 받은 위시목록: ", response.data);
+    //             setWishes(response.data); // 위시리스트 배열
+    //         } catch (error) {
+    //             console.error('위시리스트 불러오기 실패:', error);
+    //         }
+    //     };
+
+    //     fetchWishlist();
+    // }, []);
+
+    const handleRemoveWish = async (imgname) => {
+        console.log('백앤드로 보낼 삭제예정 위시 : ', imgname)
+        try {
+            await api.patch('/api/⭐', { imgname })
+            setWishes(prev => prev.filter(item => item.imgname !== imgname));
+        } catch (error) {
+            console.error('위시 삭제 실패:', error);
+        }
+    };
+
     return (
-        // 1. 가장 바깥쪽 레이아웃은 그대로 유지합니다.
         <div className="w-11/12 ml-20">
-            {/* 2. 기존 p-8과 배경색을 가진 div를 relative 컨테이너로 만듭니다. */}
             <div className="relative overflow-hidden bg-kalani-navy to-[#001833] min-h-screen with-palm-leaves">
-                
-                {/* BackgroundLayers 컴포넌트는 그대로 두거나, 빛 효과 부분만 주석 처리해도 됩니다. */}
                 <BackgroundLayers />
                 
                 {/* 4. 기존 콘텐츠들을 담을 div를 추가하고, z-10으로 위에 오게 합니다. */}
                 <div className="relative z-10 p-8">
-                    {/* 제목의 색상을 흰색으로 변경하고, border 투명도를 조절합니다. */}
                     <h2 id="font3" className="text-3xl text-white font-bold pb-6 border-b border-gray-200/30">WISH LIST</h2>
 
-                    <div className="mt-8"> {/* 제목과의 간격을 위해 마진 추가 */}
+                    <div className="mt-8">
                         <WavyLayoutFinal
                             childWidth={256}
                             childHeight={470}
                             verticalStep={250}
                         >
-                            {wishdata.map(item => (
+                            {wishdata.map(item => ( // ⭐ wishdata => wishes
                                 <WishCard
-                                    key={item.id}
+                                    key={item.imgname}
+                                    imgname={item.imagname}
                                     imageUrl={item.image}
-                                    name={item.name}
+                                    productName={item.productName}
                                     createdat={item.date}
+                                    onFavoriteClick={()=>{handleRemoveWish(item.optionid)}}
                                 />
                             ))}
                         </WavyLayoutFinal>

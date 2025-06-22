@@ -1,8 +1,4 @@
-// src/components/ItemDetails.js (새 파일)
-
 import React from 'react';
-// 아이콘 라이브러리입니다. 없으면 `npm install lucide-react` 로 설치하거나
-// <X /> 부분을 그냥 텍스트 'X'로 바꾸세요.
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 

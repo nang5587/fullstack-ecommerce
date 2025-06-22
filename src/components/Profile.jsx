@@ -1,135 +1,219 @@
+import { useState, useEffect } from 'react';
+import api from '../api/axios';  // api 인스턴스 경로 맞게 조정하세요
 import TailButton from '../UI/TailButton';
-
-import { useNavigate } from 'react-router-dom';
-
-import ProfileCard from './ProfileCard';
-
-import { FiUser, FiHeart } from 'react-icons/fi';
-import { RiShoppingBagLine } from 'react-icons/ri';
-import { HiOutlineLocationMarker } from "react-icons/hi";
-import { FaRegCommentDots } from "react-icons/fa";
-import { FiHelpCircle } from "react-icons/fi";
 import { FiEdit } from 'react-icons/fi';
 
+import ProfileCard from './ProfileCard';
+import EditProfileForm from './EditProfileForm';
+import EditAddressForm from './EditAddressForm'; //⭐
+import ChangePasswordForm from './ChangePasswordForm';
 
 function BackgroundLayers() {
     return (
         <>
-            <div
-                className="absolute inset-0 w-full h-full 
-                            bg-gradient-to-br from-slate-200 via-kalani-mist to-sky-100"
-            ></div>
-
-            {/* 왼쪽 상단 야자수 잎 */}
-            <img
-                src="/wishImgs/leaf.png"
-                alt="Palm leaf shadow"
-                className="absolute -top-20 -left-40 w-[600px] h-auto 
-                            opacity-20 mix-blend-multiply
-                            transform rotate-50 pointer-events-none
-                            
-                            /* ✅ 전환 효과 및 호버 효과 추가 */
-                            transition-transform duration-700 ease-out
-                            group-hover:rotate-40 group-hover:scale-105"
-            />
-
-            {/* 오른쪽 하단 야자수 잎 */}
-            <img
-                src="/wishImgs/leaf.png"
-                alt="Palm leaf shadow"
-                className="absolute -bottom-40 -right-40 w-[600px] h-auto 
-                            opacity-15 mix-blend-multiply
-                            transform -rotate-[120deg] scale-x-[-1] pointer-events-none
-                            
-                            /* ✅ 전환 효과 및 호버 효과 추가 */
-                            transition-transform duration-700 ease-out
-                            group-hover:-rotate-[110deg] group-hover:scale-105"
-            />
-
+            <div className="absolute inset-0 w-full h-full bg-gradient-to-br from-slate-200 via-kalani-mist to-sky-100"></div>
+            <img src="/wishImgs/leaf.png" alt="Palm leaf shadow" className="absolute -top-20 -left-40 w-[600px] h-auto opacity-20 mix-blend-multiply rotate-[50deg] pointer-events-none transition-transform duration-700 ease-out group-hover:rotate-[40deg] group-hover:scale-105" />
+            <img src="/wishImgs/leaf.png" alt="Palm leaf shadow" className="absolute -bottom-40 -right-40 w-[600px] h-auto opacity-15 mix-blend-multiply -rotate-[120deg] scale-x-[-1] pointer-events-none transition-transform duration-700 ease-out group-hover:-rotate-[110deg] group-hover:scale-105" />
         </>
     );
 }
 
-// 상세 정보 항목을 위한 재사용 가능한 컴포넌트
-const InfoRow = ({ label, value }) => (
-    <div className="flex items-center text-base">
-        <span className="w-28 text-gray-500">{label}</span>
-        <span className="font-medium text-gray-800">{value}</span>
-    </div>
-);
-
 const Profile = () => {
-    const navigate = useNavigate();
-    // 실제 애플리케이션에서는 props나 API 호출을 통해 데이터를 받아옵니다.
-    const userData = {
-        nickname: '강나현',
-        username: 'nang5587',
-        birth: '2002.11.21',
-        gender: '여성',
-        phone: '010-1111-1111',
-        loginat: '2025-11-21',
-        address: '서울특별시 강남구 역삼동 123-45' // 예시 주소
+    const [leftFlipped, setLeftFlipped] = useState(false);
+    const [rightFlipped, setRightFlipped] = useState(false);
+    const [leftCardContent, setLeftCardContent] = useState('');
+
+    const [userData, setUserData] = useState({
+        nickname: '',
+        username: '',
+        birth: '',
+        gender: '',
+        phone: '',
+        email: '',
+        createdat: '',
+        addresses: [], // 주소 목록을 위한 배열
+    });
+
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        async function fetchAllData() {
+            setLoading(true);
+            try {
+                const [infoRes, addressRes] = await Promise.all([
+                    api.get('/api/member/info'),
+                    api.get('/api/member/address')
+                ]);
+                console.log("infoRes", infoRes);
+                console.log("addressRes", addressRes);
+                if (typeof infoRes.data !== 'object' || infoRes.data === null || Array.isArray(infoRes.data)) {
+                    // 만약 객체가 아니라면, 에러를 발생시켜 catch 블록으로 보냅니다.
+                    throw new Error("서버에서 회원 정보를 잘못된 형식으로 보냈습니다.");
+                }
+
+                // 데이터 전처리
+                let infoData = infoRes.data;
+                if (infoData.birth) {
+                    infoData.birth = infoData.birth.replace(/\./g, '-');
+                }
+                if ('gender' in infoData) {
+                    infoData.gender = infoData.gender === "FEMALE" ? "여성" : "남성";
+                }
+
+                // 두 API의 응답 데이터를 하나의 상태로 합침
+                setUserData({ ...infoData, addresses: addressRes.data });
+                console.log(userData)
+
+            } catch (err) {
+                console.error('데이터 로딩 실패', err);
+                const message = err.message || '회원 정보를 불러오는 데 실패했습니다.';
+                setError(message);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchAllData();
+    }, []);
+
+    const refetchAddresses = async () => {
+        try {
+            console.log("주소 목록 리프레시 시작..."); // 디버깅용 로그
+            const addressRes = await api.get('/api/member/address');
+            const addressData = Array.isArray(addressRes.data) ? addressRes.data : [];
+
+            // ✅ 해결책: setUserData를 사용할 때, 반드시 이전 상태(prev)를 기반으로
+            //         새로운 주소 목록(addressData)을 합쳐줘야 합니다.
+            setUserData(prevUserData => ({
+                ...prevUserData, // 기존의 nickname, username 등 모든 정보를 그대로 유지
+                addresses: addressData, // addresses 키만 최신 데이터로 덮어쓰기
+            }));
+
+            console.log("주소 목록 리프레시 완료!", addressData); // 디버깅용 로그
+        } catch (err) {
+            console.error("주소 목록 리프레시 실패:", err);
+            alert("주소 목록을 새로고침하는 데 실패했습니다.");
+        }
     };
 
+    const handleSaveInfo = async (updatedInfo) => {
+        try {
+            // 주소 관련 필드는 제외하고 전송
+            const { addresses, ...infoToSave } = updatedInfo;
+            await api.put('/api/member/info', infoToSave); // 기본 정보 수정 API
+            setUserData(prev => ({ ...prev, ...infoToSave }));
+            setRightFlipped(false);
+            alert('회원 정보가 수정되었습니다.');
+        } catch (err) {
+            console.error('회원 정보 저장 실패', err);
+            alert('회원 정보 수정에 실패했습니다.');
+        }
+    };
+
+    // ✅ '주소 목록' 저장 핸들러
+    const handleSaveAddresses = async (updatedAddresses) => {
+        try {
+            await api.put('/api/member/address', updatedAddresses); // 주소 목록 전체 업데이트 API
+            setUserData(prev => ({ ...prev, addresses: updatedAddresses }));
+            setLeftFlipped(false);
+            alert('주소 정보가 저장되었습니다.');
+        } catch (err) {
+            console.error('주소 정보 저장 실패', err);
+            alert('주소 정보 저장에 실패했습니다.');
+        }
+    };
+
+    // 카드 뒤집기 네비게이션 함수들
+    const navigateToAddressEdit = () => {
+        setRightFlipped(false);
+        setLeftCardContent('address');
+        setLeftFlipped(true);
+    };
+
+    const navigateToPasswordEdit = () => {
+        setRightFlipped(false);
+        setLeftCardContent('password');
+        setLeftFlipped(true);
+    };
+
+    if (loading) {
+        return <div className="w-11/12 ml-20 p-10 text-center text-xl text-gray-500">회원 정보를 불러오는 중입니다...</div>;
+    }
+    if (error) {
+        return <div className="w-11/12 ml-20 p-10 text-center text-red-500">{error}</div>;
+    }
+
+    // ✅ 주소 목록에서 isDefault가 true인 항목을 찾습니다. 없으면 빈 객체를 사용
+
+    const defaultAddress = (userData.addresses || []).find(addr => addr.isDefault) || {};
+
     return (
-        <div className="w-11/12 ml-20"> {/* 이 구조는 그대로 유지합니다. */}
-            {/* 2. 메인 컨테이너에서 어두운 배경색을 제거합니다. */}
+        <div className="w-11/12 ml-20">
             <div className="relative overflow-hidden min-h-screen group">
-
-                {/* 3. 수정된 BackgroundLayers가 렌더링됩니다. */}
                 <BackgroundLayers />
-
-                {/* 콘텐츠 영역은 z-10으로 배경 위에 위치합니다. */}
                 <div className="relative z-10 p-8">
-                    {/* 4. 밝은 배경에 맞게 제목 텍스트 색상을 어둡게 변경합니다. */}
                     <h2 id="font3" className="text-3xl text-kalani-navy font-bold pb-6 border-b border-gray-400/30">MY INFO</h2>
-
                     <div className='flex flex-col items-center mt-8'>
                         <div className="mt-4 mb-8 p-4 grid grid-cols-1 2xl:grid-cols-2 gap-6">
-                            <ProfileCard userData={userData} />
-                            <div id='font3' className="w-[528px] h-[624px] bg-white rounded-[72px] border border-gray-200 p-10 flex flex-col justify-between">
-                                <div className="flex-grow flex flex-col justify-between pt-7 px-4"> {/* 정보를 균등하게 분배 */}
-                                    {/* 성별 */}
-                                    <div className='flex justify-between items-center text-2xl border-b border-gray-100 pb-4 mb-4'>
-                                        <p className="text-gray-600">성별</p>
-                                        <p className='font-bold text-black'>{userData.gender}</p>
+
+                            {/* 왼쪽 회전 카드 영역 */}
+                            <div className="relative w-[528px] h-[624px] [perspective:1500px]">
+                                <div className={`w-full h-full transition-transform duration-700 [transform-style:preserve-3d] relative ${leftFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+
+                                    {/* 앞면: ProfileCard */}
+                                    {/* ✅ 핵심: 뒤집혔을 때는 마우스 이벤트를 무시하도록 pointer-events-none 추가 */}
+                                    <div className={`absolute w-full h-full [backface-visibility:hidden] ${leftFlipped ? 'pointer-events-none' : ''}`}>
+                                        <ProfileCard userData={userData} />
                                     </div>
 
-                                    {/* 전화번호 */}
-                                    <div className='flex justify-between items-center text-2xl border-b border-gray-100 pb-4 mb-4'>
-                                        <p className="text-gray-600">전화번호</p>
-                                        <p className='font-bold text-black'>{userData.phone}</p>
+                                    {/* 뒷면: 주소 또는 비밀번호 수정 폼 */}
+                                    {/* ✅ 핵심: 앞면일 때는 마우스 이벤트를 무시하도록 pointer-events-none 추가 */}
+                                    <div className={`absolute w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10 ${!leftFlipped ? 'pointer-events-none' : ''}`}>
+                                        {leftCardContent === 'address' && (
+                                            <EditAddressForm
+                                                initialData={userData.addresses || []}
+                                                onDataChange={refetchAddresses}
+                                                onSave={handleSaveAddresses}
+                                                onCancel={() => setLeftFlipped(false)}
+                                            />
+                                        )}
+                                        {leftCardContent === 'password' && (
+                                            <ChangePasswordForm
+                                                onSave={() => setLeftFlipped(false)}
+                                                onCancel={() => setLeftFlipped(false)}
+                                            />
+                                        )}
                                     </div>
+                                </div>
+                            </div>
 
-                                    {/* 가입일 */}
-                                    <div className='flex justify-between items-center text-2xl border-b border-gray-100 pb-4 mb-4'>
-                                        <p className="text-gray-600">가입일</p>
-                                        <p className='font-bold text-black'>{userData.loginat}</p>
+                            {/* 오른쪽 회전 카드 영역 */}
+                            <div className="relative w-[528px] h-[624px] [perspective:1500px]">
+                                <div className={`w-full h-full transition-transform duration-700 [transform-style:preserve-3d] relative ${rightFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
+                                    {/* 앞면: 추가 정보 및 수정 버튼 */}
+                                    <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10">
+                                        <div className="flex-grow flex flex-col justify-between pt-7 px-4 text-xl">
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이름</p><p className='font-bold'>{userData.nickname}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">성별</p><p className='font-bold'>{userData.gender}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">전화번호</p><p className='font-bold'>{userData.phone}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이메일</p><p className='font-bold'>{userData.email}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">가입일</p><p className='font-bold'>{userData.createdat.split('T')[0]}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">우편번호</p><p className='font-bold'>{defaultAddress.zip || '없음'}</p></div>
+                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">배송지</p><p className='font-bold'>{defaultAddress.address1 || '기본 배송지를 설정해주세요.'}</p></div>
+                                            <div className='flex justify-between'><p className="text-gray-600"></p><p className='font-bold'>{defaultAddress.address2 || ''}</p></div>
+                                            <div className='mt-10'>
+                                                <TailButton onClick={() => setRightFlipped(true)} className="w-full bg-black text-white px-4 py-3 text-3xl rounded-2xl hover:bg-kalani-gold transition-colors"><FiEdit /></TailButton>
+                                            </div>
+                                        </div>
                                     </div>
-
-                                    {/* 배송지 */}
-                                    <div className='flex justify-between items-center text-2xl'> {/* 마지막 항목은 border-b 제거 */}
-                                        <p className="text-gray-600">배송지</p>
-                                        <p className='font-bold text-black'>{userData.address}</p>
-                                    </div>
-
-                                    <div className='flex justify-between gap-4 mt-10'>
-                                        <TailButton
-                                            onClick={() => { }}
-                                            className="w-full whitespace-nowrap bg-black text-white px-4 py-3 text-3xl rounded-2xl
-                                                        hover:bg-kalani-gold transition-colors duration-300
-                                                        cursor-pointer relative z-20"
-                                        >
-                                            <HiOutlineLocationMarker />
-                                        </TailButton>
-                                        <TailButton
-                                            onClick={() => { }}
-                                            className="w-full whitespace-nowrap bg-black text-white px-4 py-3 text-3xl rounded-2xl
-                                                        hover:bg-kalani-gold transition-colors duration-300
-                                                        cursor-pointer relative z-20"
-                                        >
-                                            <FiEdit />
-                                        </TailButton>
+                                    <div className="absolute w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10">
+                                        <EditProfileForm
+                                            initialData={userData}
+                                            onSave={handleSaveInfo} // 기본 정보 저장 핸들러 연결
+                                            onCancel={() => setRightFlipped(false)}
+                                            onNavigateToAddressEdit={navigateToAddressEdit}
+                                            onNavigateToPasswordEdit={navigateToPasswordEdit}
+                                        />
                                     </div>
                                 </div>
                             </div>

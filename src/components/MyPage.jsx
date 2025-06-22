@@ -13,7 +13,7 @@ export default function MyPage() {
     const [isLoading, setIsLoading] = useState(true); // 로딩 중인지 여부를 관리할 상태
     const [error, setError] = useState(null); // 에러 상태 관리
     const { '*': tab } = useParams();
-    const selectedTab = tab || 'orderlist';
+    const selectedTab = tab || 'profile';
 
     // 2. useEffect를 사용하여 컴포넌트 마운트 시 데이터 fetching
     useEffect(() => {
@@ -73,9 +73,9 @@ export default function MyPage() {
 
     const tabContent = () => {
         switch (selectedTab) {
+            case 'profile': return <Profile />;
             case 'orderlist': return <OrderList />;
             case 'wishlist': return <WishList />;
-            case 'profile': return <Profile />;
             case 'address': return;
             case 'myreview': return;
             case 'myqna': return;

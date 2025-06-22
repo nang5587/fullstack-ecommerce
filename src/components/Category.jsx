@@ -15,6 +15,7 @@ export default function Category({ isCateOpen, onClose }) {
         const fetchProducts = async () => {
             try {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                console.log(`http://${baseUrl}/api/public/categoryTree`)
                 const res = await fetch(`http://${baseUrl}/api/public/categoryTree`);
                 const data = await res.json();
                 setCategory(data.categoryTree);

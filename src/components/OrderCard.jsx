@@ -6,7 +6,7 @@ import { MessageSquareText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function OrderCard({ item }) {
-    // 리뷰 쓰기 버튼을 클릭했을 때 실행될 함수 (지금은 콘솔에 로그만 출력)
+    const navigate = useNavigate();
     const handleReviewClick = (e) => {
         // 중요: 이벤트 버블링 방지
         // 이 버튼을 클릭했을 때, 부모 div의 onClick(상세보기 열기)이 실행되지 않도록 막습니다.

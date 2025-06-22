@@ -1,5 +1,3 @@
-// src/data/orderListDummy.js
-
 // 제공해주신 이미지 경로 목록
 const dummyImagePaths = [
   '/wishImgs/0257430036.jpg',
@@ -21,7 +19,7 @@ const getRandomImage = () => {
 const orderListDummy = [
   // --- 2025-06-20 (총 2개 아이템, 1개 주문) ---
   {
-    "orderInfo": { "orderid": "ORD00011", "orderdate": "2025-06-20", "total": 77000, "orderstatus": "배송중" },
+    "orderInfo": { "orderid": "ORD00011", "orderdate": "2025-06-20", "total": 77000, "orderstatus": "주문완료" },
     "items": [
       { "optionid": "OP127", "quantity": 1, "price": 45000, "name": "니트 가디건", "option": "소라 / Free", "imageUrl": getRandomImage() },
       { "optionid": "OP124", "quantity": 1, "price": 32000, "name": "코튼 셔츠", "option": "화이트 / L", "imageUrl": getRandomImage() }
