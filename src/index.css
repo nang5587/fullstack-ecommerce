@@ -1,328 +1,461 @@
+/* ================================================= */
+/* 1. TailwindCSS 기본 지시문 (가장 위에 있어야 함)  */
+/* ================================================= */
 /* src/index.css (가장 단순하고 올바른 형태) */
 
 /* 1. Tailwind의 스타일을 가져옵니다. */
 @import "tailwindcss";
 
-/* src/index.css */
+/* src/index.css (수정된 최종 버전) */
+/* ================================================= */
+/* ✨ [추가] react-datepicker 커스텀 스타일         */
+/* ================================================= */
 
-/* ... (기존 @tailwind 지시어 등은 그대로 둡니다) ... */
+/* ================================================= */
+/* ======================================== */
+/*  1. 기본 DatePicker 스타일 (모든 달력 공통) */
+/* ======================================== */
 
-/* src/index.css */
+/* 전체 컨테이너 */
+.react-datepicker {
+  border: 1px solid #e5e7eb;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  padding: 0;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(200, 160, 100, 0.2);
+}
 
+
+/* ================================================== */
+/* 2. 시각화 전용 달력 스타일 (기존 스타일을 덮어씀)  */
+/* ================================================== */
+
+/* ⭐ 가장 중요한 부분: .react-datepicker 컨테이너의 너비 강제 적용 */
+.react-datepicker.visual-only-calendar {
+  width: 32rem !important; /* 캘린더 전체 너비 */
+  padding: 0.8rem;
+  box-sizing: border-box; /* 패딩 포함 너비 계산 */
+  /* background-color: #fffbeb; */ /* 필요시 주석 해제 */
+  /* border-color: var(--kalani-gold); */ /* 필요시 주석 해제 */
+}
+
+/* ⭐ 달력 내부의 월 컨테이너가 100% 너비를 사용하도록 강제 */
+.visual-only-calendar .react-datepicker__month-container {
+    width: 100% !important;
+}
+
+.visual-only-calendar .react-datepicker__month {
+    width: 100% !important; /* 월 컨테이너도 100% 사용 */
+    margin: 0; /* 기본 마진 제거 */
+}
+
+/* ✅ 헤더 색상도 기본값으로 복원 */
+.visual-only-calendar .react-datepicker__header {
+  /* background-color: #fef3c7; */ /* 삭제 */
+  padding-bottom: 0.8rem;
+}
+
+/* ✅ 월(month) 텍스트 색상도 기본값으로 복원 */
+.visual-only-calendar .react-datepicker__current-month {
+  /* color: #92400e; */ /* 삭제 */
+}
+
+
+/* ✅ 1. 요일 행과 주(week) 행 모두 가로 정렬(flex)을 적용 */
+.visual-only-calendar .react-datepicker__day-names,
+.visual-only-calendar .react-datepicker__week {
+  display: flex;
+  width: 100%; /* 부모(react-datepicker__month)의 공간을 채우도록 함 */
+  justify-content: space-between; /* 양 끝에 붙고 나머지는 균등 분배 */
+  /* align-items: stretch; */ /* 아이템 높이를 균등하게 맞춤, 필요시 주석 해제 */
+}
+
+/* ✅ 2. 요일 이름('일','월'...) 칸 스타일 */
+.visual-only-calendar .react-datepicker__day-name {
+  flex-grow: 1; /* ⭐ 남은 공간을 모두 채우도록 성장 */
+  flex-basis: 0; /* ⭐ 최소 크기를 0으로 설정하여 flex-grow가 잘 작동하게 함 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  min-width: 0; /* 오버플로우 방지 */
+  /* width: calc(100% / 7); */ /* flex-grow/basis와 함께 사용하면 충돌 가능성, 제거 */
+  margin: 0 0.1rem; /* 양 옆에 미세한 마진 */
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+/* ✅ 3. 실제 날짜('1','2'...) 칸 스타일: 내부 콘텐츠를 세로 정렬 */
+.visual-only-calendar .react-datepicker__day {
+  flex-grow: 1; /* ⭐ 남은 공간을 모두 채우도록 성장 */
+  flex-basis: 0; /* ⭐ 최소 크기를 0으로 설정하여 flex-grow가 잘 작동하게 함 */
+  text-align: center; /* 텍스트 중앙 정렬 */
+  min-width: 0; /* 오버플로우 방지 */
+  /* width: calc(100% / 7); */ /* flex-grow/basis와 함께 사용하면 충돌 가능성, 제거 */
+  margin: 0 0.1rem; /* 양 옆에 미세한 마진 */
+  height: 3.5rem; /* 날짜 칸의 높이 */
+  padding: 0.2rem; /* 내부 패딩 추가 */
+
+  /* 칸 내부의 내용물(날짜, 금액)을 위한 Flexbox 설정 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.3; /* 세로 간격 조정 */
+}
+
+
+/* 날짜 숫자 폰트 크기 */
+.visual-only-calendar .react-datepicker__day span {
+  font-size: 0.9rem;
+}
+
+/* 금액 표시 텍스트 스타일 조정 */
+.visual-only-calendar .daily-total {
+  position: static;
+  margin-top: 0.2rem;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-weight: 600;
+  text-align: center;
+  word-break: break-word; /* 긴 단어도 줄바꿈되도록 */
+  white-space: normal; /* 한 줄 강제 대신 일반적인 줄바꿈 허용 */
+  max-width: 100%; /* 부모 요소의 너비를 넘지 않도록 */
+}
+
+
+/* --- 아래 기능 비활성화 스타일은 그대로 유지합니다 --- */
+
+.visual-only-calendar .react-datepicker__day {
+  cursor: default;
+  pointer-events: none; /* 모든 마우스 이벤트 무시 */
+}
+.visual-only-calendar .react-datepicker__day:hover {
+  background-color: transparent !important;
+  transform: none !important;
+  border-color: transparent !important;
+}
+.visual-only-calendar .react-datepicker__day--selected,
+.visual-only-calendar .react-datepicker__day--in-range,
+.visual-only-calendar .react-datepicker__day--keyboard-selected {
+  background-color: transparent !important;
+  color: inherit !important;
+  transform: none !important;
+  border-color: transparent !important;
+}
+/* 1. 기본 초록색 하이라이트 스타일을 완전히 비활성화합니다. */
+.visual-only-calendar .react-datepicker__day--highlighted {
+  color: goldenrod !important;
+  background-color: white;
+}
+
+/* 3. ✅ 금액 텍스트 색상도 이 커스텀 클래스를 기준으로 다시 설정합니다. */
+.visual-only-calendar .react-datepicker__day--highlighted-has-total-amount .daily-total {
+    color: goldenrod !important;
+}
+
+/* ================================================= */
+/* 2. 배경 문제 해결을 위한 핵심 코드            */
+/* ================================================= */
+body {
+  /* body의 기본 배경색을 투명하게 만들어 뒤에 있는 배경이 보이게 함 */
+  background-color: transparent !important;
+}
+
+/* ================================================== */
+/* 3. Swiper 및 커스텀 애니메이션                   */
+/* ================================================== */
+
+/* Swiper 투명도 효과 */
 .mySwiper .swiper-slide {
   transition: opacity 0.3s ease-in-out;
-  opacity: 0.4; /* 기본적으로 모든 슬라이드를 약간 흐리게 */
+  opacity: 0.7;
 }
 
 .mySwiper .swiper-slide-active {
-  opacity: 1; /* 활성화된(중앙) 슬라이드만 선명하게 */
+  opacity: 1;
 }
 
-/* Swiper 네비게이션 버튼 스타일 개선 (선택사항) */
-.swiper-button-next,
-.swiper-button-prev {
-  color: #ffffff !important; /* 아이콘 색상을 흰색으로 */
-  background-color: rgba(0, 0, 0, 0.3);
-  width: 44px !important;
-  height: 44px !important;
-  border-radius: 50%;
-}
-.swiper-button-next::after,
-.swiper-button-prev::after {
-  font-size: 1.2rem !important; /* 아이콘 크기 조정 */
-}
-/* ================================================== */
-/* ✨ [추가] Kalani WISH PATH 배경 효과          */
-/* ================================================== */
+/* 회전하는 태양 애니메이션 */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
 
-/* 1. 빛 효과 그라데이션 */
-/* 이 클래스를 WishList.jsx의 빛 효과 div에 적용합니다. */
-.bg-radial-gradient-t {
-    /* ✨ 흰색 대신, 더 부드러운 푸른 계열의 빛으로 변경 */
-    background-image: radial-gradient(ellipse at top, rgba(75, 108, 193, 0.2), transparent 70%);
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* 2. 물결 애니메이션 (Keyframes) */
-/* 이 애니메이션을 아래 클래스들에서 사용합니다. */
+.animate-spin-slow {
+  animation: spin-slow 60s linear infinite;
+}
+
+/* 물결 애니메이션 (Keyframes) */
 @keyframes wave-flow {
   0% {
     transform: translateX(0);
   }
+
   100% {
-    transform: translateX(-50%); /* SVG를 2개 이어붙여서 -50%까지만 이동하면 자연스럽게 연결됩니다. */
+    transform: translateX(-50%);
   }
 }
 
-/* 3. 물결 애니메이션 적용 클래스 */
-/* 이 클래스들을 WishList.jsx의 Wave SVG에 적용합니다. */
 .animate-wave-slow {
   animation: wave-flow 30s linear infinite;
 }
+
 .animate-wave-medium {
   animation: wave-flow 20s linear infinite reverse;
 }
+
 .animate-wave-fast {
   animation: wave-flow 15s linear infinite;
 }
 
+
 /* ================================================== */
-/* ✨ [추가] Kalani 야자수 잎 포인트 효과         */
+/* 4. 위시리스트 및 기타 페이지 효과                */
 /* ================================================== */
+
+.bg-radial-gradient-t {
+  background-image: radial-gradient(ellipse at top, rgba(75, 108, 193, 0.2), transparent 70%);
+}
 
 .with-palm-leaves {
-    position: relative;
-    z-index: 0; /* z-index 컨텍스트 생성 */
+  position: relative;
+  z-index: 0;
 }
 
-/* 왼쪽 상단 야자수 잎 */
 .with-palm-leaves::before {
-    content: '';
-    position: absolute;
-    top: -150px;       /* 위쪽으로 삐져나가게 */
-    left: -200px;      /* 왼쪽으로 삐져나가게 */
-    width: 600px;
-    height: 600px;
-    background-image: url('/wishImgs/josh.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    transform: rotate(-15deg); /* 살짝 회전 */
-    filter: brightness(0);
-    z-index: 5;  /* 콘텐츠(z-10)보다는 뒤에, 배경(z-1)보다는 앞에 */
-    pointer-events: none; /* 마우스 클릭 방해 방지 */
-    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+  content: '';
+  position: absolute;
+  top: -150px;
+  left: -200px;
+  width: 600px;
+  height: 600px;
+  background-image: url('/wishImgs/josh.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  transform: rotate(-15deg);
+  filter: brightness(0);
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
 }
 
-/* 오른쪽 하단 야자수 잎 */
 .with-palm-leaves::after {
-    content: '';
-    position: absolute;
-    bottom: 50px;   /* 아래쪽으로 삐져나가게 */
-    right: -250px;     /* 오른쪽으로 삐져나가게 */
-    width: 700px;
-    height: 700px;
-    background-image: url('/wishImgs/josh.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    filter: brightness(0);
-    z-index: 5;
-    pointer-events: none;
-    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+  content: '';
+  position: absolute;
+  bottom: 50px;
+  right: -250px;
+  width: 700px;
+  height: 700px;
+  background-image: url('/wishImgs/josh.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  filter: brightness(0);
+  z-index: 5;
+  pointer-events: none;
+  transition: transform 0.5s ease-out, opacity 0.5s ease-out;
 }
 
-/* (선택) 마우스를 올렸을 때 미세하게 움직이는 효과 */
-.with-palm-leaves:hover::before {
-    transform: scale(1.08);
-}
+.with-palm-leaves:hover::before,
 .with-palm-leaves:hover::after {
-    transform: scale(1.08);
+  transform: scale(1.08);
 }
 
+
 /* ================================================= */
-/* [추가] KALANI 커스텀 유틸리티 클래스            */
+/* 5. KALANI 커스텀 유틸리티 클래스                 */
 /* ================================================= */
+
 .react-datepicker__header {
-    background-color: white !important;
+  background-color: white !important;
 }
 
-/* ✨ 여기에 새로운 클래스를 추가합니다. */
 .hover\:bg-kalani-gold-20:hover {
-    @apply bg-[var(--kalani-coastal-gold)]/20;
+  @apply bg-[var(--kalani-coastal-gold)]/20;
 }
 
-/* 배경색 (Background Colors) */
 .bg-kalani-creme {
-    @apply bg-[var(--kalani-coastal-creme)];
+  @apply bg-[var(--kalani-coastal-creme)];
 }
 
 .bg-kalani-stone {
-    @apply bg-[var(--kalani-coastal-stone)];
+  @apply bg-[var(--kalani-coastal-stone)];
 }
 
 .bg-kalani-mist {
-    @apply bg-[var(--kalani-coastal-mist)];
+  @apply bg-[var(--kalani-coastal-mist)];
 }
 
 .bg-kalani-ash {
-    @apply bg-[var(--kalani-coastal-ash)];
+  @apply bg-[var(--kalani-coastal-ash)];
 }
 
 .bg-kalani-shell {
-    @apply bg-[var(--kalani-coastal-shell)];
+  @apply bg-[var(--kalani-coastal-shell)];
 }
 
 .bg-kalani-navy {
-    @apply bg-[var(--kalani-coastal-navy)];
+  @apply bg-[var(--kalani-coastal-navy)];
 }
 
 .bg-kalani-gold {
-    @apply bg-[var(--kalani-coastal-gold)];
+  @apply bg-[var(--kalani-coastal-gold)];
 }
 
 .bg-kalani-beige {
-    @apply bg-[var(--kalani-coastal-beige)];
+  @apply bg-[var(--kalani-coastal-beige)];
 }
 
-/* 투명 배경 */
 .bg-kalani-beige-70 {
-    @apply bg-[var(--kalani-coastal-beige)]/70;
+  @apply bg-[var(--kalani-coastal-beige)]/70;
 }
 
-/* 텍스트 색상 (Text Colors) */
 .text-kalani-error {
-    @apply text-[var(--kalani-coastal-error)];
+  @apply text-[var(--kalani-coastal-error)];
 }
 
 .text-kalani-success {
-    @apply text-[var(--kalani-coastal-success)];
+  @apply text-[var(--kalani-coastal-success)];
 }
 
 .text-kalani-creme {
-    @apply text-[var(--kalani-coastal-creme)];
+  @apply text-[var(--kalani-coastal-creme)];
 }
 
 .text-kalani-ash {
-    @apply text-[var(--kalani-coastal-ash)];
+  @apply text-[var(--kalani-coastal-ash)];
 }
 
 .text-kalani-taupe {
-    @apply text-[var(--kalani-coastal-taupe)];
+  @apply text-[var(--kalani-coastal-taupe)];
 }
 
 .text-kalani-gold {
-    @apply text-[var(--kalani-coastal-gold)];
+  @apply text-[var(--kalani-coastal-gold)];
 }
 
 .text-kalani-navy {
-    @apply text-[var(--kalani-coastal-navy)];
+  @apply text-[var(--kalani-coastal-navy)];
 }
 
-/* 테두리 색상 (Border Colors) */
 .border-kalani-stone {
-    @apply border-[var(--kalani-coastal-stone)];
+  @apply border-[var(--kalani-coastal-stone)];
 }
 
-/* Hover 효과 예시 */
 .hover\:bg-kalani-ash:hover {
-    @apply bg-[var(--kalani-coastal-ash)];
+  @apply bg-[var(--kalani-coastal-ash)];
 }
 
 .hover\:bg-kalani-gold:hover {
-    @apply bg-[var(--kalani-coastal-gold)];
+  @apply bg-[var(--kalani-coastal-gold)];
 }
 
 .hover\:text-kalani-ash:hover {
-    @apply text-[var(--kalani-coastal-ash)];
+  @apply text-[var(--kalani-coastal-ash)];
 }
 
 .hover\:text-kalani-gold:hover {
-    @apply text-[var(--kalani-coastal-gold)];
+  @apply text-[var(--kalani-coastal-gold)];
 }
 
 .hover\:text-kalani-beige:hover {
-    @apply text-[var(--kalani-coastal-beige)];
+  @apply text-[var(--kalani-coastal-beige)];
 }
 
 .hover\:text-kalani-navy:hover {
-    @apply text-[var(--kalani-coastal-navy)];
+  @apply text-[var(--kalani-coastal-navy)];
 }
 
-/* 인풋 테두리 */
 .focus-within\:outline-kalani-navy:focus-within {
-    @apply outline-[var(--kalani-coastal-navy)];
+  @apply outline-[var(--kalani-coastal-navy)];
 }
 
 .focus-within\:outline-kalani-gold:focus-within {
-    @apply outline-[var(--kalani-coastal-gold)];
+  @apply outline-[var(--kalani-coastal-gold)];
 }
 
-/* 포커스 효과 */
 .focus\:ring-offset-kalani-creme:focus {
-    /* Tailwind의 링 오프셋 색상 변수인 --tw-ring-offset-color를 직접 설정합니다. */
-    --tw-ring-offset-color: var(--kalani-coastal-creme);
+  --tw-ring-offset-color: var(--kalani-coastal-creme);
 }
 
 .focus\:ring-kalani-gold:focus {
-    /* Tailwind의 링 색상 변수인 --tw-ring-color를 설정합니다. */
-    --tw-ring-color: var(--kalani-coastal-gold);
+  --tw-ring-color: var(--kalani-coastal-gold);
 }
 
 .dropdown-menu {
-    @apply relative;
+  @apply relative;
 }
 
 .dropdown-menu::before {
-    content: '';
-    position: absolute;
-    bottom: 100%;
-
-    /* theme() 함수 대신 실제 값을 사용합니다. */
-    right: 1.5rem;
-    /* 24px */
-
-    transform: translateX(50%);
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-
-    /* theme() 함수 대신 실제 색상 값을 사용합니다. */
-    border-bottom: 8px solid white;
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 1.5rem;
+  transform: translateX(50%);
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 8px solid white;
 }
 
 .img-hovered {
-    transform: scale(1.08);
-    /* filter: drop-shadow(0 4px 10px rgb(255, 255, 255)); */
-    will-change: transform;
-    z-index: 10;
-    transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: scale(1.08);
+  will-change: transform;
+  z-index: 10;
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .img-normal {
-    transform: scale(1);
-    transition: transform 1s cubic-bezier(0.25, 0, 0.25, 1);
+  transform: scale(1);
+  transition: transform 1s cubic-bezier(0.25, 0, 0.25, 1);
 }
 
 @keyframes jelly {
-    0% {
-        transform: scale(1, 1);
-    }
+  0% {
+    transform: scale(1, 1);
+  }
 
-    25% {
-        transform: scale(1.1, 0.9);
-    }
+  25% {
+    transform: scale(1.1, 0.9);
+  }
 
-    50% {
-        transform: scale(0.9, 1.1);
-    }
+  50% {
+    transform: scale(0.9, 1.1);
+  }
 
-    75% {
-        transform: scale(1.05, 0.95);
-    }
+  75% {
+    transform: scale(1.05, 0.95);
+  }
 
-    100% {
-        transform: scale(1, 1);
-    }
+  100% {
+    transform: scale(1, 1);
+  }
+}
+
+.shadow-nm,
+.shadow-lg {
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  border-radius: 12px;
 }
 
 .shadow-nm {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-    border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-kal {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
 .shadow-lg {
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
-    border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
 }
-
-/* .text-glow {
-  text-shadow: 2px 2px 6px rgb(255, 255, 255);
-} */
-
-/* .text-glow {
-  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.3);
-} */
 
 .hover-scale-image {
   @apply transition-transform duration-300 ease-in-out hover:scale-105;
@@ -330,11 +463,10 @@
 
 .lookbook-image {
   width: 100%;
-  max-width: 400px; /* 기본 최대 크기 */
+  max-width: 400px;
   transition: width 0.3s ease;
 }
 
-/* 화면이 xl 이상일 때는 고정 크기 유지 */
 @media (min-width: 1280px) {
   .lookbook-image {
     width: 400px;

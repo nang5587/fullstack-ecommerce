@@ -1,0 +1,137 @@
+/* src/styles/custom-datepicker.css (새로 생성하거나 기존 CSS 파일에 추가) */
+
+/* 모든 react-datepicker 인스턴스에 적용되는 기본 스타일 */
+.react-datepicker {
+    font-family: 'Pretendard', sans-serif;
+    border: 1px solid #e5e7eb;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    width: 30rem; /* 기본 너비 */
+    padding: 0.5rem;
+}
+
+/* 헤더 (월, 년도) */
+.react-datepicker__header {
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    padding-top: 1rem;
+    border-top-left-radius: 0.8rem;
+    border-top-right-radius: 0.8rem;
+}
+
+.react-datepicker__current-month {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* 월 컨테이너가 부모 너비를 100% 사용하도록 설정 */
+.react-datepicker__month {
+    margin: 0;
+    width: 100%;
+}
+
+/* 요일과 날짜를 감싸는 부모들을 flex로 정렬 */
+.react-datepicker__day-names,
+.react-datepicker__week {
+    width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+/* 요일 (일, 월, 화...) */
+.react-datepicker__day-name,
+.react-datepicker__day {
+    width: 4rem; /* 고정 너비 */
+    height: 2.5rem;
+    line-height: 2.5rem;
+}
+
+/* 각 날짜 칸 */
+.react-datepicker__day {
+    transition: all 0.2s ease-in-out;
+    border-radius: 9999px;
+    margin: 0.2rem 0;
+    border: 2px solid transparent;
+}
+
+.react-datepicker__day:hover {
+    border-color: #f3f4f6;
+    transform: scale(1.05);
+}
+
+/* 선택된 날짜 (시작, 종료, 범위) - 주로 범위 선택기에 적용 */
+.react-datepicker__day--selected,
+.react-datepicker__day--in-range {
+    background-color: var(--kalani-coastal-creme);
+    color: white;
+}
+
+.react-datepicker__day--keyboard-selected {
+    background-color: #d1d5db;
+}
+
+/* 주문 금액이 표시되는 날짜 스타일 */
+.react-datepicker__day--highlighted-day {
+    line-height: 1.2;
+    font-weight: 700;
+    color: var(--kalani-coastal-navy);
+    background-color: rgba(200, 160, 100, 0.15);
+}
+
+.daily-total {
+    position: absolute;
+    bottom: 2px;
+    font-size: 0.6rem;
+    color: #9ca3af;
+    font-weight: 500;
+}
+
+---
+
+/* ⭐ 금액 표시 전용 캘린더를 위한 고유 스타일 (display-only-calendar 클래스 사용) */
+.react-datepicker.display-only-calendar {
+    width: 25rem; /* 예시: 너비를 다르게 설정 */
+    box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.08); /* 그림자를 더 연하게 */
+    /* background-color: #f8f8f8; 만약 배경색을 다르게 하고 싶다면 */
+}
+
+/* 표시 전용 캘린더에서는 날짜 칸의 호버/선택 효과 제거 */
+.react-datepicker.display-only-calendar .react-datepicker__day:hover {
+    background-color: transparent; /* 호버 시 배경 변경 없음 */
+    border-color: transparent; /* 호버 시 테두리 변경 없음 */
+    transform: none; /* 호버 시 확대 효과 없음 */
+    cursor: default; /* 마우스 커서를 기본으로 변경 (클릭 불가 표시) */
+}
+
+/* 표시 전용 캘린더에서는 '선택됨' 또는 '범위 내' 스타일 제거 */
+.react-datepicker.display-only-calendar .react-datepicker__day--selected,
+.react-datepicker.display-only-calendar .react-datepicker__day--in-range {
+    background-color: transparent !important; /* 배경색 강제 제거 */
+    color: inherit !important; /* 텍스트 색상 강제 초기화 */
+    border: none !important; /* 테두리 강제 제거 */
+}
+
+/* 표시 전용 캘린더의 기본 날짜 색상 */
+.react-datepicker.display-only-calendar .react-datepicker__day {
+    color: #1f2937; /* 기본 날짜 숫자 색상 */
+}
+
+/* 금액이 있는 날짜의 색상은 유지하거나 변경 */
+.react-datepicker.display-only-calendar .react-datepicker__day--highlighted-day {
+    background-color: rgba(200, 160, 100, 0.15); /* 금액 있는 날짜 배경색 유지 */
+    color: var(--kalani-gold); /* 금액 있는 날짜 텍스트 색상 */
+}
+
+/* 날짜 숫자 자체의 색상도 조정할 수 있습니다. */
+.react-datepicker.display-only-calendar .react-datepicker__day span.self-center {
+    color: #1f2937; /* 기본 날짜 숫자 색상 */
+}
+.react-datepicker.display-only-calendar .react-datepicker__day--highlighted-day span.self-center {
+    color: var(--kalani-navy); /* 금액 있는 날짜 숫자 색상 */
+}
+
+/* 표시 전용 캘린더의 날짜 칸에서 포인터 커서 제거 */
+.react-datepicker.display-only-calendar .react-datepicker__day {
+    cursor: default;
+}

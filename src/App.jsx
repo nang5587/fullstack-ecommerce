@@ -35,7 +35,7 @@ function App() {
   return (
     <BrowserRouter>
       <CartProvider>
-        <div className="w-full min-h-screen flex flex-col bg-white">
+        <div className="w-full min-h-screen flex flex-col">
           <header className="w-full h-24 flex flex-col flex-shrink-0">
             <Nav />
           </header>
