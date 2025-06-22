@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from "react";
 import orderListDummy from "../data/orderListDummy";
 import DateCarousel from "./DateCarousel";
-import FilterTabs from "./FilterTabs";
 import DateFilter from "./DateFilter";
 import { format } from 'date-fns';
 
@@ -12,13 +11,13 @@ function BackgroundLayers() {
     return (
         <>
             {/* 하늘 그라데이션 배경 */}
-            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-100 to-rose-100"></div>
+            <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-orange-50 to-rose-100"></div>
 
             {/* 회전하는 태양 */}
             <img
                 src="/wishImgs/sun.png"
                 alt="Rotating sun"
-                className="absolute top-7 right-7 w-64 h-64 opacity-70 animate-spin-slow z-10"
+                className="absolute -top-45 -right-45 w-[500px] h-[500px] opacity-70 animate-spin-slow z-10"
             />
 
             {/* 물결 SVG 레이어들 (흰색 계열로 색상 변경) */}

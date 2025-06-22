@@ -117,7 +117,7 @@ export default function WavyLayoutFinal({ children, childWidth, childHeight, ver
         >
             <svg width="0" height="0" style={{ position: 'absolute' }}><path id={PATH_ID} d={fullPathD} fill="none" /></svg>
             <svg className="absolute top-0 left-0 w-full h-full" style={{ overflow: 'visible', zIndex: 1 }}>
-                <path d={fullPathD} stroke="url(#visible-line-gradient)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+                <path d={fullPathD} stroke="url(#visible-line-gradient)" strokeWidth="3" fill="none" strokeLinecap="round" />
                 <defs><linearGradient id="visible-line-gradient" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" style={{ stopColor: '#B5835A', stopOpacity: 0.5 }} /><stop offset="100%" style={{ stopColor: '#B5835A', stopOpacity: 0.05 }} /></linearGradient></defs>
             </svg>
             {items.map((child, index) => (

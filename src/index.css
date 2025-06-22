@@ -6,6 +6,33 @@
 /* 1. Tailwind의 스타일을 가져옵니다. */
 @import "tailwindcss";
 
+/* ======================================== */
+/*  ✨ 커스텀 애니메이션 및 효과            */
+/* ======================================== */
+
+/* 1. 빛이 부드럽게 커졌다 작아지는 애니메이션 */
+@keyframes pulse-light {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.15;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.25;
+  }
+}
+.bg-radial-gradient-t {
+  background-image: radial-gradient(ellipse at top, var(--tw-gradient-stops));
+}
+
+/* 아래쪽에서 퍼지는 원형 그라데이션 */
+.bg-radial-gradient-b {
+  background-image: radial-gradient(ellipse at bottom, var(--tw-gradient-stops));
+}
+.animate-pulse-light {
+  animation: pulse-light 10s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
 /* src/index.css (수정된 최종 버전) */
 /* ================================================= */
 /* ✨ [추가] react-datepicker 커스텀 스타일         */
@@ -54,11 +81,6 @@
 .visual-only-calendar .react-datepicker__header {
   /* background-color: #fef3c7; */ /* 삭제 */
   padding-bottom: 0.8rem;
-}
-
-/* ✅ 월(month) 텍스트 색상도 기본값으로 복원 */
-.visual-only-calendar .react-datepicker__current-month {
-  /* color: #92400e; */ /* 삭제 */
 }
 
 

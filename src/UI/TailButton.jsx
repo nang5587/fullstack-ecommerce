@@ -12,6 +12,8 @@ const buttonVariants = cva(
           'bg-[#03C75A] text-white hover:opacity-90',
         navy:
           'bg-kalani-navy text-white hover:opacity-80',
+        gold:
+          'bg-black text-white hover:bg-kalani-gold hover:text-black',
       },
       size: {
         sm: 'text-sm px-3 py-1.5',

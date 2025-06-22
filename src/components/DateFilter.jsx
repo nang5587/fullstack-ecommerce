@@ -71,7 +71,7 @@ export default function DateFilter({
                             key={preset}
                             onClick={() => onPresetClick(preset)}
                             className={`px-4 py-2 text-sm font-semibold rounded-sm transition-all duration-200 ${activePreset === preset
-                                ? 'bg-kalani-gold text-white border-kalani-gold'
+                                ? 'bg-black text-white border-black'
                                 : ''
                                 }`}
                         >

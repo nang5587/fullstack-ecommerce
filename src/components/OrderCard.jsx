@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Pencil } from 'lucide-react'; 
+import { MessageSquareText } from 'lucide-react'; 
 import { useNavigate } from 'react-router-dom';
 
 export default function OrderCard({ item }) {
@@ -42,7 +42,7 @@ export default function OrderCard({ item }) {
                                 hover:bg-kalani-gold hover:scale-105
                                 focus:outline-none focus:ring-2 focus:ring-kalani-gold focus:ring-offset-2"
                 >
-                    <Pencil size={36} strokeWidth={2.5} />
+                    <MessageSquareText size={36} strokeWidth={2} />
                 </button>
             </div>
         </motion.div>
