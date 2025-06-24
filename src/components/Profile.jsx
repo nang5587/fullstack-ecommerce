@@ -57,9 +57,9 @@ const Profile = () => {
                 if (infoData.birth) {
                     infoData.birth = infoData.birth.replace(/\./g, '-');
                 }
-                if ('gender' in infoData) {
-                    infoData.gender = infoData.gender === "FEMALE" ? "여성" : "남성";
-                }
+                // if ('gender' in infoData) {
+                //     infoData.gender = infoData.gender === "FEMALE" ? "여성" : "남성";
+                // }
 
                 // 두 API의 응답 데이터를 하나의 상태로 합침
                 setUserData({ ...infoData, addresses: addressRes.data });
@@ -100,26 +100,13 @@ const Profile = () => {
         try {
             // 주소 관련 필드는 제외하고 전송
             const { addresses, ...infoToSave } = updatedInfo;
-            await api.put('/api/member/info', infoToSave); // 기본 정보 수정 API
+            await api.patch('/api/member/infoEdit', infoToSave); // 기본 정보 수정 API
             setUserData(prev => ({ ...prev, ...infoToSave }));
             setRightFlipped(false);
             alert('회원 정보가 수정되었습니다.');
         } catch (err) {
             console.error('회원 정보 저장 실패', err);
             alert('회원 정보 수정에 실패했습니다.');
-        }
-    };
-
-    // ✅ '주소 목록' 저장 핸들러
-    const handleSaveAddresses = async (updatedAddresses) => {
-        try {
-            await api.put('/api/member/address', updatedAddresses); // 주소 목록 전체 업데이트 API
-            setUserData(prev => ({ ...prev, addresses: updatedAddresses }));
-            setLeftFlipped(false);
-            alert('주소 정보가 저장되었습니다.');
-        } catch (err) {
-            console.error('주소 정보 저장 실패', err);
-            alert('주소 정보 저장에 실패했습니다.');
         }
     };
 
@@ -145,7 +132,7 @@ const Profile = () => {
 
     // ✅ 주소 목록에서 isDefault가 true인 항목을 찾습니다. 없으면 빈 객체를 사용
 
-    const defaultAddress = (userData.addresses || []).find(addr => addr.isDefault) || {};
+    const defaultAddress = (userData.addresses || []).find(addr => addr.main) || {};
 
     return (
         <div className="w-11/12 ml-20">
@@ -171,9 +158,10 @@ const Profile = () => {
                                     <div className={`absolute w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10 ${!leftFlipped ? 'pointer-events-none' : ''}`}>
                                         {leftCardContent === 'address' && (
                                             <EditAddressForm
-                                                initialData={userData.addresses || []}
+                                                addresses={userData.addresses || []}
+                                                // ✅ onDataChange는 그대로 유지 (핵심 역할)
                                                 onDataChange={refetchAddresses}
-                                                onSave={handleSaveAddresses}
+                                                // ✅ 2. onSave prop 제거
                                                 onCancel={() => setLeftFlipped(false)}
                                             />
                                         )}
@@ -191,19 +179,34 @@ const Profile = () => {
                             <div className="relative w-[528px] h-[624px] [perspective:1500px]">
                                 <div className={`w-full h-full transition-transform duration-700 [transform-style:preserve-3d] relative ${rightFlipped ? '[transform:rotateY(180deg)]' : ''}`}>
                                     {/* 앞면: 추가 정보 및 수정 버튼 */}
-                                    <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10">
-                                        <div className="flex-grow flex flex-col justify-between pt-7 px-4 text-xl">
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이름</p><p className='font-bold'>{userData.nickname}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">성별</p><p className='font-bold'>{userData.gender}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">전화번호</p><p className='font-bold'>{userData.phone}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이메일</p><p className='font-bold'>{userData.email}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">가입일</p><p className='font-bold'>{userData.createdat.split('T')[0]}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">우편번호</p><p className='font-bold'>{defaultAddress.zip || '없음'}</p></div>
-                                            <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">배송지</p><p className='font-bold'>{defaultAddress.address1 || '기본 배송지를 설정해주세요.'}</p></div>
-                                            <div className='flex justify-between'><p className="text-gray-600"></p><p className='font-bold'>{defaultAddress.address2 || ''}</p></div>
-                                            <div className='mt-10'>
-                                                <TailButton onClick={() => setRightFlipped(true)} className="w-full bg-black text-white px-4 py-3 text-3xl rounded-2xl hover:bg-kalani-gold transition-colors"><FiEdit /></TailButton>
+                                    <div className="absolute w-full h-full [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10 flex flex-col">
+
+                                        {/* ✅ 2. 정보 목록을 감싸는 div를 만들고, 이 부분만 스크롤되도록 설정합니다. */}
+                                        {/* flex-grow: 남는 공간을 모두 차지 */}
+                                        {/* overflow-y-auto: 내용이 넘칠 때만 세로 스크롤바 생성 */}
+                                        {/* pr-4: 스크롤바가 생겼을 때 내용과 겹치지 않도록 오른쪽 여백 추가 */}
+                                        <div className="flex-grow overflow-y-auto pr-4 scrollbar-hide">
+                                            <div className="pt-7 px-4 text-xl">
+                                                {/* 여기에 모든 정보 목록을 넣습니다. */}
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이름</p><p className='font-bold'>{userData.nickname}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">성별</p><p className='font-bold'>{userData.gender}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">전화번호</p><p className='font-bold'>{userData.phone}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이메일</p><p className='font-bold'>{userData.email}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">가입일</p><p className='font-bold'>{userData.createdat.split('T')[0]}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">우편번호</p><p className='font-bold'>{defaultAddress.zip || '없음'}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">배송지</p><p className='font-bold'>{defaultAddress.address1 || '기본 배송지를 설정해주세요.'}</p></div>
+                                                <div className='flex justify-between'><p className="text-gray-600"></p><p className='font-bold'>{defaultAddress.address2 || ''}</p></div>
                                             </div>
+                                        </div>
+
+                                        {/* ✅ 3. 버튼을 별도의 div로 분리하여 하단에 고정합니다. */}
+                                        {/* mt-auto: 자동으로 위쪽 여백을 만들어 맨 아래로 밀어냄 */}
+                                        {/* pt-6: 스크롤 영역과의 최소 간격 확보 */}
+                                        {/* flex-shrink-0: 공간이 부족해도 버튼이 찌그러지지 않도록 방지 */}
+                                        <div className='mt-auto pt-6 flex-shrink-0'>
+                                            <TailButton onClick={() => setRightFlipped(true)} className="w-full bg-black  text-white px-2 py-3 text-lg rounded-xl hover:bg-kalani-gold transition-colors">
+                                                <FiEdit />&nbsp; 회원정보 수정
+                                            </TailButton>
                                         </div>
                                     </div>
                                     <div className="absolute w-full h-full [transform:rotateY(180deg)] [backface-visibility:hidden] bg-white rounded-[72px] border border-gray-200 p-10">

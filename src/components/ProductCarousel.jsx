@@ -15,78 +15,78 @@ import ProductCard from "../components/ProductCard";
 
 export default function ProductCarousel({ title, column }) {
     const [products, setProducts] = useState([]);
+    // ✅ 로딩 상태를 추가하여 데이터가 없을 때 바로 컴포넌트가 사라지는 것을 방지
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // API 호출 로직을 async 함수로 분리하여 가독성 향상
         const fetchProducts = async () => {
+            setLoading(true);
             try {
                 const baseUrl = import.meta.env.VITE_BACKEND_URL;
                 const url = `http://${baseUrl}/api/public/${column}`;
+                const config = { headers: {} };
 
-                // axios 요청 설정을 담을 객체
-                const config = {
-                    headers: {} // headers 객체 초기화
-                };
-
-                // 'popular'가 아닐 경우에만 인증 헤더를 추가
-                if (column !== "popular") {
+                // 'recommend' 캐러셀일 때만 인증 헤더 추가
+                if (column === "recommend") {
                     const token = localStorage.getItem('accessToken');
+                    // 토큰이 없으면 그냥 요청을 보내지 않고 함수를 종료.
+                    // 어차피 Home.js에서 추천 상품이 없는 레이아웃을 보여주므로 여기서 아무것도 렌더링하지 않으면 됨.
                     if (!token) {
-                        console.log("추천 상품을 보려면 로그인이 필요합니다.");
-                        // 로그인되지 않은 사용자는 추천 상품을 볼 수 없으므로, 여기서 데이터를 비우거나 기본값을 설정할 수 있습니다.
                         setProducts([]);
-                        return; // 함수 실행 중단
+                        return;
                     }
-
-                    // [수정] 표준 Authorization 헤더 형식으로 설정
                     config.headers['Authorization'] = `Bearer ${token}`;
                 }
 
-                // GET 요청을 한 번만 호출하고, 두 번째 인자로 config 객체를 전달
                 const response = await axios.get(url, config);
-
-                // [수정] axios는 .data로 이미 파싱된 JSON 데이터에 접근합니다.
                 const data = response.data;
-                console.log("서버로부터 받은 데이터:", data);
+                console.log(`[ProductCarousel - ${column}] 서버로부터 받은 데이터:`, data);
 
-                // 'popular'일 때와 아닐 때를 구분하여 올바른 키의 데이터에 접근
                 const items = column === "popular" ? data.popularItems : data.recommendedItems;
-                setProducts(items);
+                const validItems = items || [];
+
+                // ✅ 핵심: 내용 비교 후 업데이트. 불필요한 리렌더링 방지.
+                setProducts(prevProducts => {
+                    if (JSON.stringify(prevProducts) !== JSON.stringify(validItems)) {
+                        return validItems;
+                    }
+                    return prevProducts;
+                });
 
             } catch (err) {
-                // 에러 객체를 더 자세히 출력하여 디버깅 용이성 확보
-                if (err.response) {
-                    // 서버가 응답했으나, 상태 코드가 2xx가 아닐 때 (e.g., 401 Unauthorized, 404 Not Found)
-                    console.error(`API 응답 에러 (${err.response.status}):`, err.response.data);
-                } else if (err.request) {
-                    // 요청이 이루어졌으나 응답을 받지 못했을 때
-                    console.error("서버로부터 응답을 받지 못했습니다:", err.request);
-                } else {
-                    // 요청 설정 중 에러가 발생했을 때
-                    console.error("상품 데이터를 불러오는 데 실패함:", err.message);
-                }
-                setProducts([]); // 에러 발생 시 상품 목록을 비웁니다.
+                console.error(`[ProductCarousel - ${column}] 상품 데이터를 불러오는 데 실패:`, err.response?.data || err.message);
+                setProducts([]); // 에러 발생 시 확실하게 비워줌
+            } finally {
+                setLoading(false);
             }
         };
 
         fetchProducts();
 
-        // [수정] column 값이 변경될 때마다 effect가 다시 실행되도록 의존성 배열에 추가
+        // ✅ 의존성 배열을 'column'으로 단순화.
+        // 이 컴포넌트는 'column' prop이 바뀔 때만 데이터를 다시 가져와야 합니다.
     }, [column]);
+
+    if (loading || products.length === 0) {
+        // 단, 추천 상품 확인을 위해 로딩이 끝나고 상품이 없을 때까지 기다려야 하므로,
+        // 로딩 상태를 체크하는 것이 중요합니다.
+        // `column === 'recommend'`일 때는 렌더링을 하지 않더라도, useEffect는 실행되어 onDataLoaded를 호출합니다.
+        return null;
+    }
 
     return (
         <div className="w-full px-4 md:px-10 mb-12 ml-10">
-            <h2 className="text-xl font-bold mt-10 mb-5">
+            <h2 className="text-2xl font-bold mt-10 mb-5">
                 {title}
             </h2>
             <Swiper
                 modules={[]}
                 spaceBetween={16}
-                // 'auto'로 설정하면 각 슬라이드의 너비를 그대로 유지합니다.
                 slidesPerView="auto"
             >
                 {products.map((product) => (
-                    <SwiperSlide key={product.imgname} className="!w-[330px] h-auto"> {/* !w-auto: 카드 고유 너비 사용 */}
+                    // ✅ key는 고유해야 합니다. fullcode가 없다면 다른 고유값을 사용해야 합니다.
+                    <SwiperSlide key={product.fullcode || product.imgname} className="!w-[330px] h-auto">
                         <div className="h-full">
                             <ProductCard product={product} />
                         </div>
@@ -94,6 +94,5 @@ export default function ProductCarousel({ title, column }) {
                 ))}
             </Swiper>
         </div>
-    )
-
+    );
 }

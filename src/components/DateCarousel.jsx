@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { EffectCoverflow, Pagination } from 'swiper/modules';
 import { motion, AnimatePresence } from 'framer-motion'; // 애니메이션을 위한 import
+import { format } from 'date-fns';
 
 import OrderCard from './OrderCard';
 import ItemDetails from './ItemDetails'; // 새로 만들 상세정보 컴포넌트
@@ -34,14 +35,15 @@ export default function DateCarousel({ date, items, selectedItem, onItemSelect, 
         }
     }, [isDetailsOpen, swiperInstance]);
 
-    date = date.replace(/-/g, '. '); // 날짜 형식 변경
+
     return (
         <div className="w-full">
             <h3 className="text-xl font-semibold mb-4 ml-2 text-gray-500 text-center">{date}</h3>
-            {items[0]?.orderInfo?.orderstatus === '주문완료' && (
+            {items.length > 0 && items[0].orderstatus === '주문완료' && (
                 <div className="flex justify-end mb-4">
                     <TailButton
-                        onClick={() => onCancel(selectedItem.orderInfo.orderid)}
+                        // onCancel 함수에 현재 그룹의 주문 ID(items[0].orderId)를 전달합니다.
+                        onClick={() => onCancel(items[0].orderId)}
                         className="px-4 py-2 bg-opacity-0 border-gray-400"
                     >
                         주문 취소
@@ -86,7 +88,7 @@ export default function DateCarousel({ date, items, selectedItem, onItemSelect, 
                                 className="w-full h-full"
                                 onClick={() => onItemSelect(item)}
                             >
-                                <OrderCard item={item} />
+                                <OrderCard item={item[0]} />
                             </div>
                         </SwiperSlide>
                     ))}

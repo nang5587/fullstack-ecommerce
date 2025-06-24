@@ -48,6 +48,7 @@ export default function AdPage() {
             </div>
         );
     }
+    console.log(product.imgname,"이거야")
 
     return (
         <div className="w-full min-h-screen bg-kalani-creme flex flex-col lg:flex-row">
@@ -123,7 +124,7 @@ export default function AdPage() {
                                 to={`/detail/${productId}`}
                                 className="inline-block w-full text-center px-8 py-4 bg-kalani-navy text-white font-semibold rounded-md shadow-nm hover:opacity-90 transition-opacity"
                             >
-                                자세히 보기 & 구매하기
+                                자세히 보기
                             </Link>
                         </motion.div>
                     </motion.div>

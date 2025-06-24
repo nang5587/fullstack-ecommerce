@@ -6,6 +6,8 @@ import MyPageLayout from "./MyPageLayout";
 import OrderList from "./OrderList";
 import WishList from "./WishList";
 import Profile from "./Profile";
+import MyReview from "./MyReview";
+import MyQnaPage from "./MyQnaPage";
 
 export default function MyPage() {
     const navigate = useNavigate();
@@ -76,9 +78,8 @@ export default function MyPage() {
             case 'profile': return <Profile />;
             case 'orderlist': return <OrderList />;
             case 'wishlist': return <WishList />;
-            case 'address': return;
-            case 'myreview': return;
-            case 'myqna': return;
+            case 'myreview': return <MyReview />;
+            case 'myqna': return <MyQnaPage />;
             default: return null;
         }
     };

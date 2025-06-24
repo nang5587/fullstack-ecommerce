@@ -5,6 +5,8 @@ import TailButton from '../UI/TailButton';
 import ReviewWriteForm from './ReviewWriteForm';
 import ErrorMessage from './ErrorMessage';
 
+import api from '../api/axios';
+
 const dummyReviews = [
     {
         username: "user",

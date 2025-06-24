@@ -29,7 +29,7 @@ const textVariants = {
 };
 
 
-export default function WishCard({ imgname, imageUrl, productName, createdat, onFavoriteClick }) {
+export default function WishCard({ imgname, imageUrl, productName, createdat, onRemoveClick }) {
     // ✨ 2. useInView만 사용합니다. useAnimation은 더 이상 필요 없습니다.
     const [ref, inView] = useInView({
         threshold: 0.5, // 카드 전체의 50%가 보이면 실행
@@ -37,7 +37,7 @@ export default function WishCard({ imgname, imageUrl, productName, createdat, on
     });
 
     const navigate = useNavigate();
-
+    const baseUrl = import.meta.env.VITE_BACKEND_URL;
     return (
         // ✨ 3. 감시 대상이 될 부모 motion.div
         <motion.div
@@ -62,7 +62,7 @@ export default function WishCard({ imgname, imageUrl, productName, createdat, on
             >
                 <div className="w-full h-full relative group">
                     <img
-                        src={imageUrl}
+                        src={`http://${baseUrl}/api/public/img/goods/${imageUrl}`}
                         alt={productName}
                         className="
                             w-full h-full 
@@ -102,12 +102,11 @@ export default function WishCard({ imgname, imageUrl, productName, createdat, on
                 <div className="flex items-center justify-between mt-2">
                     <span className="text-sm text-kalani-gold font-medium">{createdat}</span>
                     <div className="flex items-center gap-1">
-                        {/* <button onClick={onFavoriteClick}
-                            className="p-2 rounded-full text-kalani-taupe hover:bg-kalani-gold/20 hover:text-kalani-gold">
-                            <FaHeart size={16} />
-                        </button> */}
-                        <button onClick={onFavoriteClick}
-                            className="p-2 rounded-full text-kalani-taupe hover:bg-kalani-gold/20 hover:text-kalani-gold">
+                        <button
+                            onClick={onRemoveClick}
+                            className="p-2 rounded-full text-kalani-taupe hover:bg-kalani-gold/20 hover:text-kalani-gold"
+                            title="위시리스트에서 삭제" // 사용자 편의를 위한 title 속성 추가
+                        >
                             <FaHeart size={16} />
                         </button>
                     </div>

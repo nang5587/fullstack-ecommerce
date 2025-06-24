@@ -1,10 +1,10 @@
 import React from 'react';
 import { X } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export default function ItemDetails({ item, onClose }) {
     if (!item) return null;
-
+    const navigate = useNavigate();
     const detailLink = `/detail/${item.imgname}`;
 
     return (
@@ -23,7 +23,7 @@ export default function ItemDetails({ item, onClose }) {
                     to={detailLink}
                     className="hover:underline cursor-pointer"
                 >
-                    {item.name}
+                    {item.productName}
                 </Link>
             </h3>
 
@@ -32,9 +32,16 @@ export default function ItemDetails({ item, onClose }) {
                     <p><span className="font-semibold text-gray-500 w-28 inline-block">선택 옵션</span> {item.option}</p>
                     <p><span className="font-semibold text-gray-500 w-28 inline-block">수량</span> {item.quantity}개</p>
                     <p><span className="font-semibold text-gray-500 w-28 inline-block">가격</span> {item.price.toLocaleString()}원</p>
+                    <p><span className="font-medium text-gray-500 w-24 inline-block">연락처</span> {item.deliveryAddress.phone}</p>
+                    <p className="flex">
+                        <span className="font-medium text-gray-500 w-24 inline-block flex-shrink-0">주소</span>
+                        <span>[{item.deliveryAddress.zip}] {item.deliveryAddress.address1} {item.deliveryAddress.address2}</span>
+                    </p>
                 </div>
                 <div className="space-y-2 border-t md:border-t-0 md:border-l border-gray-200 pt-4 md:pt-0 md:pl-8">
                     <p><span className="font-semibold text-gray-500 w-28 inline-block">주문 번호</span> {item.orderInfo.orderid}</p>
+                    <p><span className="font-medium text-gray-500 w-24 inline-block">결제 수단</span> {item.orderInfo.payment}</p>
+                    <p><span className="font-medium text-gray-500 w-24 inline-block">받는 분</span> {item.deliveryAddress.name}</p>
                     <p><span className="font-semibold text-gray-500 w-28 inline-block">주문 상태</span>
                         <span className="font-bold ml-2 text-kalani-gold">{item.orderInfo.orderstatus}</span>
                     </p>

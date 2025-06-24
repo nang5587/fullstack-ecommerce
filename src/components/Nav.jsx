@@ -40,7 +40,7 @@ export default function Nav() {
             <div className="relative z-30 bg-white p-4">
                 <div className='flex items-center justify-between px-10 gap-8'>
                     <div className='flex'>
-                        <Link to="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-4xl text-black hover:text-kalani-gold">
+                        <Link to="/" id="font" className="flex flex-row items-center gap-2 flex-shrink-0 text-5xl text-black hover:text-kalani-gold">
                             {/* 📢 스토어명 정하기 */}
                             <h1>KALANI</h1>
                             {/* <span>STORE</span> */}
@@ -132,9 +132,15 @@ export default function Nav() {
                                                     로그인
                                                 </button>
                                                     <Link to="/sign" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원가입</Link></>}
-                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">공지사항</Link>
-                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">F&Q</Link>
-                                                <Link to="/" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">고객센터</Link>
+                                                {isLoggedIn &&
+                                                    <>
+                                                        <Link to="/mypage" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">회원정보</Link>
+                                                        <Link to="/mypage/orderlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">주문목록</Link>
+                                                        <Link to="/mypage/wishlist" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">위시리스트</Link>
+                                                        <Link to="/mypage/myreview" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">마이리뷰</Link>
+                                                        <Link to="/mypage/myqna" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Q&A</Link>
+                                                    </>
+                                                }
                                                 {isLoggedIn && <button
                                                     onClick={() => {
                                                         handleLogout();

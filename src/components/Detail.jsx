@@ -3,7 +3,7 @@ import './Detail.css';
 
 // 훅 목록
 import { useEffect, useState, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from './CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -30,6 +30,8 @@ import { BsHeart, BsHeartFill } from 'react-icons/bs';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 
+import api from '../api/axios';
+
 export default function Detail() {
     // url로 날아오는 이미지 번호 넣을 변수
     const { productId } = useParams(); //imgname
@@ -40,7 +42,9 @@ export default function Detail() {
     const [product, setProduct] = useState(null);
     const [selectedSize, setSelectedSize] = useState(null);
     const [selectedOptions, setSelectedOptions] = useState([]);
+
     const [liked, setLiked] = useState(false);
+
     const [selectedTab, setSelectedTab] = useState('description');
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -60,6 +64,29 @@ export default function Detail() {
 
     const { isLoggedIn, username } = useAuth();
 
+    const navigate = useNavigate();
+    const handleQnaClick = () => {
+        if (isLoggedIn) {
+            navigate('/mypage/qna', {
+                state: {
+                    askAboutProductId: productId
+                }
+            });
+        } else {
+            const redirectTo = `/mypage/qna`;
+            const stateToPass = { askAboutProductId: productId };
+
+            // 로그인 페이지로 이동하면서, 로그인 후 돌아올 경로와 함께 전달할 상태도 함께 넘깁니다.
+            navigate('/login', {
+                state: {
+                    from: redirectTo,
+                    // 로그인 후 state를 다시 복원하기 위한 추가 정보
+                    redirectState: stateToPass
+                }
+            });
+        }
+    };
+
     const sizeOrder = ['xs', 's', 'm', 'l', 'xl'];
     const sortedOptions = useMemo(() => {
         if (!product?.options) return [];
@@ -67,6 +94,30 @@ export default function Detail() {
             (a, b) => sizeOrder.indexOf(a.size.toLowerCase()) - sizeOrder.indexOf(b.size.toLowerCase())
         );
     }, [product]);
+
+    useEffect(() => {
+        // 상품 정보가 로드된 후에, 그리고 로그인 상태일 때만 실행
+        if (!product || !isLoggedIn) {
+            // 비로그인 시에는 '좋아요'하지 않은 상태로 간주
+            if (!isLoggedIn) setLiked(false);
+            return;
+        }
+
+        const checkWishStatus = async () => {
+            try {
+                // ProductCard와 동일한 API를 호출
+                const res = await api.get('/api/member/heartOn', {
+                    params: { imgname: product.imgname }
+                });
+                setLiked(res.data === true);
+            } catch (error) {
+                console.error('위시리스트 상태 확인 실패:', error);
+                setLiked(false);
+            }
+        };
+
+        checkWishStatus();
+    }, [product, isLoggedIn]);
 
     // 상품정보 useEffect
     useEffect(() => {
@@ -78,6 +129,7 @@ export default function Detail() {
                 const res = await axios.get(`http://${baseUrl}/api/public/detail/${productId}`);
                 const data = res.data;
                 setProduct(data);
+                console.log(data);
 
                 const imgs = data.imglist || [];
                 const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
@@ -198,6 +250,39 @@ export default function Detail() {
         }, 2000); // 2초 후 사라짐
     }
 
+    const handleWishToggle = async (e) => {
+        e.preventDefault();
+
+        if (!isLoggedIn) {
+            alert('로그인이 필요한 기능입니다.');
+            return;
+        }
+
+        // 서버에서 상태 확인 중일 때는 클릭 방지
+        if (liked === null || !product) return;
+
+        const originalLiked = liked;
+        const newLiked = !liked;
+        setLiked(newLiked); // UI 즉시 업데이트 (낙관적 업데이트)
+
+        try {
+            if (newLiked) {
+                await api.post('/api/member/addwish',
+                    `${product.imgname}`
+                );
+            } else {
+                await api.delete('/api/member/deletewish', {
+                params: {
+                    imgname: product.imgname
+                }
+            });
+            }
+        } catch (error) {
+            console.error('위시리스트 업데이트 실패:', error);
+            alert("요청 처리 중 오류가 발생했습니다.");
+            setLiked(originalLiked); // 실패 시 UI 롤백
+        }
+    };
 
     if (loading) {
         return <div>로딩 스켈레톤 UI...</div>; // TODO: 스켈레톤 UI 컴포넌트로 교체
@@ -350,16 +435,17 @@ export default function Detail() {
                         <div className='w-1/2 pl-3'>
                             <TailButton
                                 variant="selGhost"
-                                onClick={(e) => {
-                                    e.preventDefault(); // Link 클릭 방지
-                                    setLiked((prev) => !prev);
-                                }}
+                                onClick={handleWishToggle}
+                                disabled={liked === null} // 확인 중일 때 비활성화
                                 className='w-full rounded-md inline-flex justify-center items-center'
-                            >위시리스트&nbsp;{liked ? (
-                                <BsHeartFill className="text-rose-600 w-4 h-4 transition-colors duration-200" />
-                            ) : (
-                                <BsHeart className="text-gray-500 w-4 h-4 drop-shadow transition-colors duration-200" />
-                            )}</TailButton>
+                            >
+                                위시리스트
+                                {liked ? (
+                                    <BsHeartFill className="text-rose-600 w-4 h-4 transition-colors duration-200" />
+                                ) : (
+                                    <BsHeart className="text-gray-500 w-4 h-4 drop-shadow transition-colors duration-200" />
+                                )}
+                            </TailButton>
                         </div>
                     </div>
 
@@ -412,6 +498,12 @@ export default function Detail() {
                             className={`text-left px-3 py-2 rounded-md ${selectedTab === 'review' ? 'bg-gray-100 font-semibold' : 'text-gray-500 hover:bg-gray-50 hover:text-kalani-gold'}`}
                         >
                             리뷰
+                        </button>
+                        <button
+                            onClick={handleQnaClick} // 새로 만든 핸들러 연결
+                            className="text-left px-3 py-2 rounded-md text-gray-500 hover:bg-gray-50 hover:text-kalani-gold"
+                        >
+                            Q&A
                         </button>
                     </div>
 

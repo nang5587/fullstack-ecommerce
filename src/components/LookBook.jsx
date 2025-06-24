@@ -71,25 +71,7 @@ export default function LookBook({ imageSrc, items, infoPosition = "right" }) {
                         textAlign: infoPosition === "left" ? "right" : "left",
                     }}
                 >
-                    <ul className="space-y-6 text-white hover:text-kalani-gold">
-                        {items.map((item, idx) => (
-                            <li key={idx}>
-                                <a
-                                    href={`/product/${item.fullcode}`}
-                                    className={`hover:underline  text-lg font-medium ${infoPosition === "left" ? "text-right" : "text-left"
-                                        }`}
-                                >
-                                    {item.name}
-                                </a>
-                                <p
-                                    className={`text-sm ${infoPosition === "left" ? "text-right" : "text-left"
-                                        }`}
-                                >
-                                    ₩{item.price.toLocaleString()}
-                                </p>
-                            </li>
-                        ))}
-                    </ul>
+
                 </div>
             </div>
         </div>

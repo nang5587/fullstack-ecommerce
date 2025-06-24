@@ -25,7 +25,7 @@ export default function MyPageMenu({ selectedTab, onChangeTab }) {
                 <button
                     key={tab.id}
                     onClick={()=> onChangeTab(tab.id)}
-                    className={`flex items-center gap-2 px-3 py-2 text-left rounded-md transition
+                    className={`flex items-center gap-2 px-3 py-2 text-left rounded-md transition whitespace-nowrap
                                 ${selectedTab === tab.id ? 'bg-gray-100 font-semibold text-bold' : 'text-gray-500 hover:bg-gray-50 hover:text-kalani-gold'}`}  
                 >
                     {tab.icon}

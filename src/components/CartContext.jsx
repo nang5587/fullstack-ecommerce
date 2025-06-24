@@ -7,84 +7,108 @@ import api from "../api/axios";
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
-    const isSyncing = useRef(false);
     const { isLoggedIn, username } = useAuth();
-    const [cartItems, setCartItems] = useState(() => {
-        // 비로그인 상태의 장바구니를 먼저 불러오도록 시도
-        const unauthCart = localStorage.getItem('cart-unauthenticated');
-        if (unauthCart) return JSON.parse(unauthCart);
-        const authCart = localStorage.getItem('cart');
-        return authCart ? JSON.parse(authCart) : [];
-    });
+
+    // ✅ 1. 초기 상태는 항상 빈 배열로 시작하여 혼동을 없앰
+    const [cartItems, setCartItems] = useState([]);
+
     const [updatingItems, setUpdatingItems] = useState({});
     const hasSynced = useRef(false);
-    const token = localStorage.getItem('accessToken');
 
-    // 상태가 변경될 때마다 로컬스토리지에 장바구니 정보를 저장해서
-    // 로그인 전 담은 상품을 유지할 수 있도록 함.
-    useEffect(() => {
-        localStorage.setItem('cart', JSON.stringify(cartItems));
-    }, [cartItems]);
-
+    // ✅ 2. 모든 로딩/동기화/저장 로직을 이 하나의 useEffect에서 처리
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
 
-        // 로그인 되었고, 아직 동기화한 적이 없다면 동기화 시작
-        if (isLoggedIn && token && !hasSynced.current) {
-            hasSynced.current = true; // 동기화 플래그 ON
-
-            const syncToServer = async () => {
-                // const baseUrl = import.meta.env.VITE_BACKEND_URL;
+        const syncAndLoadCart = async () => {
+            // --- 로그인 상태일 때의 로직 ---
+            if (isLoggedIn && token && !hasSynced.current) {
+                hasSynced.current = true; // 동기화는 한 번만 실행
                 try {
+                    // 비로그인 장바구니가 있으면 서버에 병합
                     const localCartRaw = localStorage.getItem('cart-unauthenticated');
                     const localCart = localCartRaw ? JSON.parse(localCartRaw) : [];
-
                     if (localCart.length > 0) {
-                        console.log('비로그인 장바구니를 서버에 병합합니다:', localCart);
+                        console.log('비로그인 장바구니를 서버에 병합합니다.');
                         await api.post(`/api/member/cart/add`, {
-                            items: localCart.map(item => ({
-                                imgname: item.imgname,
-                                optionid: item.optionid.toUpperCase(),
-                                quantity: item.quantity,
-                                size: item.size,
-                                price: item.price,
-                            }))
-                        }, { headers: { Authorization: `Bearer ${token}` } });
+                            items: localCart.map(item => ({ ...item }))
+                        });
+
                         localStorage.removeItem('cart-unauthenticated');
                     }
 
-                    console.log("서버의 최신 장바구니 목록을 가져옵니다...");
-                    const res = await api.get(`/api/member/cart/list`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
 
+                    // 서버에서 최신 장바구니를 불러와 상태 업데이트
+                    console.log("서버의 최신 장바구니 목록을 가져옵니다.");
+                    const res = await api.get(`/api/member/cart/list`);
                     const serverItems = res.data.items || [];
+                    console.log(serverItems)
                     setCartItems(serverItems);
-                    localStorage.setItem('cart', JSON.stringify(serverItems));
-                    console.log('✅ 서버 장바구니와 동기화 완료');
 
                 } catch (err) {
                     console.error('❌ 장바구니 동기화 실패', err);
-                    hasSynced.current = false; // 실패 시 다시 시도할 수 있도록 플래그 OFF
+                    hasSynced.current = false; // 실패 시 다시 시도할 수 있도록
                 }
-            };
-            syncToServer();
-        }
-        // 로그아웃 시 상태 초기화
-        else if (!isLoggedIn) {
-            setCartItems([]);
-            localStorage.removeItem('cart');
-            hasSynced.current = false; // 로그아웃 시 동기화 플래그 리셋
-        }
-    }, [isLoggedIn]);
+            }
+            // --- 비로그인 상태일 때의 로직 ---
+            else if (!isLoggedIn) {
+                // 비로그인 장바구니를 로컬 스토리지에서 불러옴
+                const unauthCart = localStorage.getItem('cart-unauthenticated');
+                setCartItems(unauthCart ? JSON.parse(unauthCart) : []);
+                hasSynced.current = false; // 로그아웃 시 동기화 플래그 리셋
+            }
+        };
 
+        syncAndLoadCart();
+
+    }, [isLoggedIn]); // 이 모든 로직은 'isLoggedIn' 상태가 바뀔 때만 실행됨
+
+    // ✅ 3. localStorage 저장을 담당하는 두 번째 useEffect
+    // 이 effect는 위 effect와 분리하여, cartItems가 변경될 때마다 저장하는 역할만 담당
     useEffect(() => {
+        // 로딩 중이거나 동기화 중일 때는 섣불리 저장하지 않도록 방어할 수 있으나,
+        // 일단은 단순하게 유지.
         if (isLoggedIn) {
             localStorage.setItem('cart', JSON.stringify(cartItems));
         } else {
+            // 비로그인 상태이고, cartItems가 내용이 있을 때만 저장
             localStorage.setItem('cart-unauthenticated', JSON.stringify(cartItems));
+            console.log('logout--------------')
         }
     }, [cartItems, isLoggedIn]);
+
+
+    // ✅ 4. bulkAddToCart에서 isLoggedIn 상태에 따라 분기 처리 명확화
+    const bulkAddToCart = async (itemsArray) => {
+        if (!Array.isArray(itemsArray)) return;
+
+        // 먼저 UI 상태를 업데이트 (공통 로직)
+        setCartItems(prev => {
+            const updated = Array.isArray(prev) ? [...prev] : [];
+            itemsArray.forEach(newItem => {
+                const exists = updated.find(item => item.optionid === newItem.optionid && item.size === newItem.size);
+                if (exists) {
+                    exists.quantity += newItem.quantity;
+                } else {
+                    updated.push(newItem);
+                }
+            });
+            return updated;
+        });
+
+        // 로그인 상태일 때만 서버에 전송
+        if (isLoggedIn) {
+            try {
+                const token = localStorage.getItem('accessToken');
+                await api.post(`/api/member/cart/add`, {
+                    items: itemsArray.map(item => ({ /* ... */ }))
+                }, { headers: { Authorization: `Bearer ${token}` } });
+            } catch (err) {
+                console.error("❌ 서버 장바구니 추가 실패:", err);
+                // 필요하다면 여기서 UI 롤백 로직을 추가할 수 있음
+            }
+        }
+    };
+
 
     const updateQuantity = async (itemId, size, amount) => {
         const itemKey = `${itemId}-${size}`;
@@ -141,92 +165,97 @@ export const CartProvider = ({ children }) => {
         }
     };
 
-    const bulkAddToCart = async (itemsArray) => {// 디테일에서 장바구니 추가 버튼 눌렀을 때
-        if (!Array.isArray(itemsArray)) return;
-        setCartItems(prev => {
-            console.log('prev', prev);
+    // const bulkAddToCart = async (itemsArray) => {// 디테일에서 장바구니 추가 버튼 눌렀을 때
+    //     if (!Array.isArray(itemsArray)) return;
+    //     setCartItems(prev => {
+    //         console.log('prev', prev);
 
-            // prev가 배열이 아니라 객체인 경우를 대비
-            const prevArray = Array.isArray(prev) ? prev : (Array.isArray(prev.items) ? prev.items : []);
+    //         // prev가 배열이 아니라 객체인 경우를 대비
+    //         const prevArray = Array.isArray(prev) ? prev : (Array.isArray(prev.items) ? prev.items : []);
 
-            const updated = [...prevArray];
+    //         const updated = [...prevArray];
 
-            itemsArray.forEach(newItem => {
-                const exists = updated.find(
-                    item => item.optionid === newItem.optionid && item.size === newItem.size
-                );
-                if (exists) {
-                    exists.quantity += newItem.quantity;
-                } else {
-                    updated.push(newItem);
-                }
-            });
+    //         itemsArray.forEach(newItem => {
+    //             const exists = updated.find(
+    //                 item => item.optionid === newItem.optionid && item.size === newItem.size
+    //             );
+    //             if (exists) {
+    //                 exists.quantity += newItem.quantity;
+    //             } else {
+    //                 updated.push(newItem);
+    //             }
+    //         });
 
-            return updated;
-        });
+    //         return updated;
+    //     });
 
-        console.log('bulkAddToCart(cartcontext.jsx) :', cartItems);
+    //     console.log('bulkAddToCart(cartcontext.jsx) :', cartItems);
 
-        const payload = {
-            username,
-            items: itemsArray.map(item => ({
-                imgname: item.imgname,
-                optionid: item.optionid.toUpperCase(),
-                quantity: item.quantity,
-                size: item.size,
-                price: item.price,
-                color: item.color,
-            }))
-        };
+    //     const payload = {
+    //         username,
+    //         items: itemsArray.map(item => ({
+    //             imgname: item.imgname,
+    //             optionid: item.optionid.toUpperCase(),
+    //             quantity: item.quantity,
+    //             size: item.size,
+    //             price: item.price,
+    //             color: item.color,
+    //         }))
+    //     };
 
-        console.log('백엔드로 전송할 데이터:', payload);
+    //     console.log('백엔드로 전송할 데이터:', payload);
 
-        if (isLoggedIn) {
-            try {
-                // const baseUrl = import.meta.env.VITE_BACKEND_URL;
+    //     if (isLoggedIn) {
+    //         try {
+    //             // const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
-                await api.post(`/api/member/cart/add`, {
-                    username,
-                    items: itemsArray.map(item => ({
-                        imgname: item.imgname,
-                        optionid: item.optionid.toUpperCase(),
-                        quantity: item.quantity,
-                        size: item.size,
-                        price: item.price,
-                    }))
-                }, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-            } catch (err) {
-                console.error("❌ 서버 장바구니 추가 실패:", err);
-            }
-        }
-    };
+    //             await api.post(`/api/member/cart/add`, {
+    //                 username,
+    //                 items: itemsArray.map(item => ({
+    //                     imgname: item.imgname,
+    //                     optionid: item.optionid.toUpperCase(),
+    //                     quantity: item.quantity,
+    //                     size: item.size,
+    //                     price: item.price,
+    //                 }))
+    //             }, {
+    //                 headers: { Authorization: `Bearer ${token}` }
+    //             });
+    //         } catch (err) {
+    //             console.error("❌ 서버 장바구니 추가 실패:", err);
+    //         }
+    //     }
+    // };
 
     const removeItem = async (itemId, size) => {
-        setCartItems(prev =>
-            prev.filter(item => !(item.optionid === itemId && item.size === size))
-        );
+        const originalCart = [...cartItems];
+        const itemKey = `${itemId}-${size}`;
+
+        setCartItems(prevItems => prevItems.filter(item =>
+            !(item.optionid === itemId && item.size === size)
+        ));
 
         if (isLoggedIn) {
             try {
                 // const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const token = localStorage.getItem('accessToken');
 
                 await api.delete(`/api/member/cart/remove/${itemId}`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
+                console.log("삭제", itemId)
 
-                const res = await api.get(`/api/member/cart/list`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                setCartItems(res.data.items);
-                localStorage.setItem('cart', JSON.stringify(res.data.items));
+                // const res = await api.get(`/api/member/cart/list`);
+                // console.log("불러옴" , res.data.items)
+                // setCartItems(res.data.items);
+                // localStorage.setItem('cart', JSON.stringify(res.data.items));
             } catch (err) {
                 console.error('❌ 아이템 삭제 실패:', err);
+                setCartItems(originalCart);
             }
         }
     };
+
 
     const clearCart = async () => {
         setCartItems([]);

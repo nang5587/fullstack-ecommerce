@@ -36,16 +36,16 @@ export default function EditProfileForm({
         <form onSubmit={handleSubmit} className="flex flex-col justify-between h-full">
             <div className="grid grid-cols-2 gap-3 text-lg text-gray-700">
                 {/* ... (다른 input 필드들은 동일) ... */}
-                <div className="col-span-1"><input type="text" name="nickname" value={formData.nickname} onChange={handleChange} className="w-full border rounded-xl px-3 py-2" /></div>
+                <div className="col-span-1"><input type="text" name="nickname" value={formData.nickname} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>
                 <div className="col-span-1">
-                    <select name="gender" value={formData.gender} onChange={handleChange} className="w-full border rounded-xl px-3 py-2">
+                    <select name="gender" value={formData.gender} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2">
                         <option value="">선택</option><option value="여성">여성</option><option value="남성">남성</option>
                     </select>
                 </div>
-                <div className="col-span-2"><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full border rounded-xl px-3 py-2" /></div>
-                <div className="col-span-2"><input type="date" name="birth" value={formData.birth} onChange={handleChange} className="w-full border rounded-xl px-3 py-2" /></div>
-                <div className="col-span-2"><input type="text" name="email" value={formData.email} onChange={handleChange} className="w-full border rounded-xl px-3 py-2" /></div>
-                <div className="col-span-2"><input type="text" name="username" value={formData.username} readOnly className="w-full bg-gray-100 border rounded-xl px-3 py-2" /></div>
+                <div className="col-span-2"><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>
+                <div className="col-span-2"><input type="date" name="birth" value={formData.birth} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>
+                <div className="col-span-2"><input type="text" name="email" value={formData.email} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>
+                <div className="col-span-2"><input type="text" name="username" value={formData.username} readOnly className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3 py-2" /></div>
 
                 {/* 여기가 핵심: 버튼 클릭 시 부모로부터 받은 함수를 호출 */}
                 <div className="col-span-1">

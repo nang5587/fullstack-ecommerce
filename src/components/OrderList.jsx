@@ -1,10 +1,10 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import orderListDummy from "../data/orderListDummy";
 import DateCarousel from "./DateCarousel";
 import DateFilter from "./DateFilter";
 import { format } from 'date-fns';
-
 import api from '../api/axios'
+
+// import orderListDummy from '../data/orderListDummy';
 
 // 날짜 계산
 import { subDays, startOfDay, endOfDay } from 'date-fns';
@@ -41,6 +41,11 @@ function Wave({ className, ...props }) {
     );
 }
 
+const getLocalDate = (isoDateStr) => {
+    if (!isoDateStr || typeof isoDateStr !== 'string') return null;
+    return isoDateStr.split('T')[0]; // 'T'를 기준으로 잘라 앞부분만 반환
+};
+
 export default function OrderList() {
     const [orders, setOrders] = useState([]);
     // 2. 선택된 아이템을 저장할 상태를 만듭니다.
@@ -50,28 +55,37 @@ export default function OrderList() {
     const [activePreset, setActivePreset] = useState('전체');
 
     // 전체 목록 가져오기
-    // const fetchOrders = useCallback(async () => {
-    //     try {
-    //         const res = await api.get('/api/⭐');
-    //         setOrders(res.data);
-    //         console.log("백앤드로 받은 주문내역 : ", orders);
-    //     } catch (e) {
-    //         console.error('주문 목록 불러오기 실패:', e);
-    //     }
-    // }, []);
+    const fetchOrders = useCallback(async () => {
+        try {
+            const res = await api.get('/api/member/orderlist');
+            // setOrders(res.data);
+            setOrders(Array.isArray(res.data) ? res.data : []);
+            console.log("백앤드로 받은 주문내역 : ", res.data);
+        } catch (e) {
+            console.error('주문 목록 불러오기 실패:', e);
+            setOrders([]);
+        }
+    }, []);
 
-    // useEffect(() => {
-    //     fetchOrders();
-    // }, [fetchOrders]);
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const dailyTotals = useMemo(() => {
-        return orderListDummy.reduce((acc, order) => { // ⭐ orderListDummy => orders
-            const date = order.orderInfo.orderdate;
+        if (!Array.isArray(orders)) return {};
+        
+        return orders.reduce((acc, order) => {
+            if (!order.orderInfo) return acc;
+            
+            const date = getLocalDate(order.orderInfo.orderdate);
             const total = order.orderInfo.total;
-            acc[date] = (acc[date] || 0) + total;
+            
+            if (date) {
+                acc[date] = (acc[date] || 0) + total;
+            }
             return acc;
         }, {});
-    }, []);
+    }, [orders]);
 
     const highlightedDates = useMemo(() => {
         // dailyTotals 객체의 모든 키(날짜 문자열)를 가져와서
@@ -80,27 +94,33 @@ export default function OrderList() {
     }, [dailyTotals]);
 
     const groupedByDate = useMemo(() => {
-        // ✅ 4. 필터링 로직을 그룹화 이전에 먼저 적용합니다.
-        const filteredOrders = orderListDummy.filter(order => { // ⭐ orderListDummy => orders
-            // 시작일이나 종료일이 없으면 필터링하지 않음 (전체 보기)
-            if (!startDate || !endDate) return true;
+        if (!Array.isArray(orders)) return [];
 
-            const orderDate = new Date(order.orderInfo.orderdate);
-            // 날짜 비교 시 시/분/초를 포함하여 정확하게 비교
+        const filteredOrders = orders.filter(order => {
+            if (!startDate || !endDate || !order.orderInfo?.orderdate) return true;
+            
+            const orderDate = new Date(getLocalDate(order.orderInfo.orderdate));
             return orderDate >= startOfDay(startDate) && orderDate <= endOfDay(endDate);
         });
 
-        // 필터링된 데이터를 기준으로 그룹화를 진행합니다.
         const groups = filteredOrders.reduce((acc, order) => {
-            const dateString = order.orderInfo.orderdate;
+            if (!order.orderInfo || !order.orderInfo.orderdate) return acc;
+
+            const dateString = getLocalDate(order.orderInfo.orderdate);
             if (!acc[dateString]) {
                 acc[dateString] = { date: dateString, items: [] };
             }
-            const itemsWithOrderInfo = order.items.map(item => ({
+
+            // 이제 order.items에 이미 productName, imageUrl 등이 모두 포함되어 있으므로,
+            // 추가 정보를 주입할 필요 없이 그대로 사용합니다.
+            // 또한, orderInfo 전체를 넘겨주면 하위 컴포넌트에서 더 많은 정보를 활용할 수 있습니다.
+            const itemsWithFullContext = order.items.map(item => ({
                 ...item,
-                orderInfo: order.orderInfo,
+                orderInfo: order.orderInfo, // 주문 전체 정보
+                deliveryAddress: order.address, // 배송지 정보
             }));
-            acc[dateString].items.push(...itemsWithOrderInfo);
+            
+            acc[dateString].items.push(...itemsWithFullContext);
             return acc;
         }, {});
 
@@ -167,7 +187,7 @@ export default function OrderList() {
     const handleCancelOrder = async (orderid) => {
         try {
             console.log('백앤드로 보낼 주문취소건 : ', )
-            await api.patch('/api/⭐', { orderid });
+            await api.patch('/api/member/⭐', { orderid });
             await fetchOrders();
         } catch (error) {
             console.error('주문 취소 실패:', error);
@@ -175,23 +195,30 @@ export default function OrderList() {
     };
 
     // 컴포넌트가 처음 렌더링될 때 '전체' 프리셋을 기본으로 설정
-    React.useEffect(() => {
+    useEffect(() => {
         handlePresetClick('전체');
     }, []);
 
+    
+
     return (
-        <div className="w-11/12 ml-20"> {/* 이 구조는 그대로 유지합니다. */}
-            {/* 2. 메인 컨테이너에서 어두운 배경색을 제거합니다. */}
+        <div className="w-11/12 ml-20">
             <div className="relative overflow-hidden min-h-screen">
-
-                {/* 3. 수정된 BackgroundLayers가 렌더링됩니다. */}
                 <BackgroundLayers />
-
-                {/* 콘텐츠 영역은 z-10으로 배경 위에 위치합니다. */}
                 <div className="relative z-10 p-8">
-                    {/* 4. 밝은 배경에 맞게 제목 텍스트 색상을 어둡게 변경합니다. */}
-                    <h2 id="font3" className="text-3xl text-kalani-navy font-bold pb-6 border-b border-gray-400/30">ORDER LIST</h2>
-                    <div className="relative z-10 flex justify-center">
+                    {/* 헤더 */}
+                    <div className="flex justify-between items-center pb-6 border-b border-gray-400/30">
+                        <h2 id="font3" className="text-3xl text-gray-700 font-bold">
+                            ORDER LIST
+                        </h2>
+                        {/* 이 부분은 Q&A 페이지의 '+새 질문하기' 버튼이므로, 주문 목록에서는 필요 없을 수 있습니다. */}
+                        {/* <button className="...">
+                            ...
+                        </button> */}
+                    </div>
+
+                    {/* 카테고리 필터 (DateFilter) */}
+                    <div className="flex justify-center mt-6 py-2">
                         <DateFilter
                             startDate={startDate}
                             endDate={endDate}
@@ -202,23 +229,29 @@ export default function OrderList() {
                             highlightDates={highlightedDates}
                         />
                     </div>
-
-                    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-12">
-                        {groupedByDate.map((group) => (
-                            <DateCarousel
-                                key={group.date}
+                    
+                    {/* Q&A 카드 그리드 (DateCarousel) */}
+                    <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-12 mt-4">
+                        {/* 필터링된 주문 목록을 날짜별로 렌더링 */}
+                        {groupedByDate.map((group, index) => (
+                            <DateCarousel 
+                                key={`${group.date}-${index}`}
                                 date={group.date}
                                 items={group.items}
                                 selectedItem={selectedItem}
                                 onItemSelect={handleItemSelect}
-                                onCancel={handleCancelOrder}
+                                onCancel={handleCancelOrder} // 주문 취소 핸들러 전달
                             />
                         ))}
-                        {/* ✅ 8. 필터링 결과 주문이 없을 때 표시할 메시지 */}
+
+                        {/* 필터링 결과가 없을 때 메시지 */}
                         {groupedByDate.length === 0 && (
-                            <div className="text-center p-20 text-gray-500">
+                            <div className="text-center py-20 text-gray-500">
                                 <p className="text-xl font-semibold">
-                                    '{activePreset || (startDate && endDate ? `${format(startDate, 'yyyy.MM.dd')} ~ ${format(endDate, 'yyyy.MM.dd')}` : '선택된 기간')}' 내 주문 내역이 없습니다.
+                                    {activePreset === '전체' && !startDate
+                                        ? '주문 내역이 없습니다.'
+                                        : `'${activePreset || (startDate && endDate ? `${format(startDate, 'yyyy.MM.dd')} ~ ${format(endDate, 'yyyy.MM.dd')}` : '선택된 기간')}' 내 주문 내역이 없습니다.`
+                                    }
                                 </p>
                             </div>
                         )}
