@@ -30,7 +30,7 @@ export const CartProvider = ({ children }) => {
                     if (localCart.length > 0) {
                         console.log('비로그인 장바구니를 서버에 병합합니다.');
                         await api.post(`/api/member/cart/add`, {
-                            items: localCart.map(item => ({ ...item }))
+                            items: localCart.map(item => ([ ...item ]))
                         });
 
                         localStorage.removeItem('cart-unauthenticated');
@@ -41,7 +41,7 @@ export const CartProvider = ({ children }) => {
                     console.log("서버의 최신 장바구니 목록을 가져옵니다.");
                     const res = await api.get(`/api/member/cart/list`);
                     const serverItems = res.data.items || [];
-                    console.log(serverItems)
+                    console.log("서버의 최신 장바구니", serverItems)
                     setCartItems(serverItems);
 
                 } catch (err) {
@@ -100,7 +100,7 @@ export const CartProvider = ({ children }) => {
             try {
                 const token = localStorage.getItem('accessToken');
                 await api.post(`/api/member/cart/add`, {
-                    items: itemsArray.map(item => ({ /* ... */ }))
+                    items: itemsArray.map(item => ({ optionid : item.optionid })) // ⭐
                 }, { headers: { Authorization: `Bearer ${token}` } });
             } catch (err) {
                 console.error("❌ 서버 장바구니 추가 실패:", err);
@@ -111,7 +111,7 @@ export const CartProvider = ({ children }) => {
 
 
     const updateQuantity = async (itemId, size, amount) => {
-        const itemKey = `${itemId}-${size}`;
+        const itemKey = `${itemId}`;
         if (updatingItems[itemKey]) return;
 
         const originalCartItems = cartItems;

@@ -58,9 +58,9 @@ export default function OrderList() {
     const fetchOrders = useCallback(async () => {
         try {
             const res = await api.get('/api/member/orderlist');
-            // setOrders(res.data);
-            setOrders(Array.isArray(res.data) ? res.data : []);
-            console.log("백앤드로 받은 주문내역 : ", res.data);
+            console.log("백앤드로 받은 주문내역 : ", res);
+            const orders = res.data?.orders ?? [];
+            setOrders(Array.isArray(orders) ? orders : []);
         } catch (e) {
             console.error('주문 목록 불러오기 실패:', e);
             setOrders([]);
@@ -73,13 +73,13 @@ export default function OrderList() {
 
     const dailyTotals = useMemo(() => {
         if (!Array.isArray(orders)) return {};
-        
+
         return orders.reduce((acc, order) => {
             if (!order.orderInfo) return acc;
-            
+
             const date = getLocalDate(order.orderInfo.orderdate);
             const total = order.orderInfo.total;
-            
+
             if (date) {
                 acc[date] = (acc[date] || 0) + total;
             }
@@ -98,7 +98,7 @@ export default function OrderList() {
 
         const filteredOrders = orders.filter(order => {
             if (!startDate || !endDate || !order.orderInfo?.orderdate) return true;
-            
+
             const orderDate = new Date(getLocalDate(order.orderInfo.orderdate));
             return orderDate >= startOfDay(startDate) && orderDate <= endOfDay(endDate);
         });
@@ -119,7 +119,7 @@ export default function OrderList() {
                 orderInfo: order.orderInfo, // 주문 전체 정보
                 deliveryAddress: order.address, // 배송지 정보
             }));
-            
+
             acc[dateString].items.push(...itemsWithFullContext);
             return acc;
         }, {});
@@ -186,7 +186,7 @@ export default function OrderList() {
 
     const handleCancelOrder = async (orderid) => {
         try {
-            console.log('백앤드로 보낼 주문취소건 : ', )
+            console.log('백앤드로 보낼 주문취소건 : ',)
             await api.patch('/api/member/⭐', { orderid });
             await fetchOrders();
         } catch (error) {
@@ -199,7 +199,7 @@ export default function OrderList() {
         handlePresetClick('전체');
     }, []);
 
-    
+
 
     return (
         <div className="w-11/12 ml-20">
@@ -229,12 +229,12 @@ export default function OrderList() {
                             highlightDates={highlightedDates}
                         />
                     </div>
-                    
+
                     {/* Q&A 카드 그리드 (DateCarousel) */}
                     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-12 mt-4">
                         {/* 필터링된 주문 목록을 날짜별로 렌더링 */}
                         {groupedByDate.map((group, index) => (
-                            <DateCarousel 
+                            <DateCarousel
                                 key={`${group.date}-${index}`}
                                 date={group.date}
                                 items={group.items}
