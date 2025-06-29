@@ -4,8 +4,11 @@ import SortMenu from './SortMenu';
 
 import TailButton from "../UI/TailButton";
 
-import { useEffect, useState, } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+
+// ✅ 1. axios 직접 임포트 대신, 설정된 api 인스턴스를 임포트합니다.
+import api from '../api/axios'; 
 
 const MIN_PRICE = 0;
 const MAX_PRICE = 50000;
@@ -35,10 +38,15 @@ export default function Listing() {
             queryParams.delete('limit');
 
             try {
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await fetch(`http://${baseUrl}/api/public/category/goods?${queryParams.toString()}`);
-                const data = await res.json();
-                setAllProducts(data || []);
+                // ✅ 2. 기본 fetch 대신 'api.get'을 사용합니다.
+                // baseURL은 api 인스턴스에 이미 설정되어 있으므로, 뒷부분 경로만 적어줍니다.
+                // params 객체를 사용하면 axios가 자동으로 쿼리 스트링을 만들어줍니다.
+                const res = await api.get('/api/public/category/goods', { 
+                    params: queryParams 
+                });
+                
+                // ✅ 3. axios는 응답 데이터를 res.data에 담아줍니다.
+                setAllProducts(res.data || []);
             } catch (error) {
                 console.error("Failed to fetch products:", error);
                 setAllProducts([]);
@@ -67,8 +75,8 @@ export default function Listing() {
         mid: currentParams.getAll('mid'),
         sub: currentParams.getAll('sub'),
         main: currentParams.get('main') || '',
-        minPrice: currentParams.get('minPrice') ? parseInt(currentParams.get('minPrice'), 10) : MIN_PRICE,
-        maxPrice: currentParams.get('maxPrice') ? parseInt(currentParams.get('maxPrice'), 10) : MAX_PRICE,
+        minPrice: currentParams.get('minPrice') ? parseInt(current.get('minPrice'), 10) : MIN_PRICE,
+        maxPrice: currentParams.get('maxPrice') ? parseInt(current.get('maxPrice'), 10) : MAX_PRICE,
     };
     const initialSort = currentParams.get('sort') || 'newest';
     const [sortOrder, setSortOrder] = useState(initialSort);

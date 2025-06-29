@@ -120,61 +120,58 @@ export default function Detail() {
     }, [product, isLoggedIn]);
 
     // 상품정보 useEffect
-    useEffect(() => {
-        window.scrollTo(0, 0);
-        const fetchProduct = async () => {
-            setLoading(true);
-            try {
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const res = await axios.get(`http://${baseUrl}/api/public/detail/${productId}`);
-                const data = res.data;
-                setProduct(data);
-                console.log(data);
+    // ✅ api 인스턴스를 사용하도록 수정한 useEffect
+useEffect(() => {
+    window.scrollTo(0, 0);
 
-                const imgs = data.imglist || [];
-                const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
+    const fetchProduct = async () => {
+        setLoading(true);
+        setError(null); // 새로운 상품을 불러오기 전에 이전 에러 상태 초기화
 
-                const imagePairs = sortedImgs.map(img => {
-                    const baseImageUrl = `http://${baseUrl}/api/public/img/goods/`;
-                    return {
-                        small: `${baseImageUrl}${img.imgUrl}`,
-                        // 고화질 이미지는 다른 경로에 있다고 가정 (예: /large/ 폴더)
-                        // 백엔드와 경로를 맞춰야 합니다.
-                        large: `${baseImageUrl}${img.imgUrl}`
-                    };
-                });
+        try {
+            // 1. axios 직접 호출 대신, 설정된 api 인스턴스를 사용합니다.
+            // baseURL은 자동으로 적용되므로 뒷부분 경로만 적어줍니다.
+            const res = await api.get(`/api/public/detail/${productId}`);
 
-                setThumbnails(imagePairs);
+            // 2. axios는 응답 데이터를 res.data에 담아줍니다.
+            const data = res.data;
+            setProduct(data);
+            console.log("상품 상세 정보:", data);
 
-                if (imagePairs.length > 0) {
-                    setMainImage(imagePairs[0]);
-                }
+            const imgs = data.imglist || [];
+            const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
+
+            // 3. 이미지 URL을 생성할 때도 하드코딩된 baseUrl 대신
+            //    api 인스턴스의 기본 URL 설정을 활용하여 일관성을 유지합니다.
+            const imagePairs = sortedImgs.map(img => {
+                const baseImageUrl = `${api.defaults.baseURL}/api/public/img/goods/`;
+                return {
+                    small: `${baseImageUrl}${img.imgUrl}`,
+                    large: `${baseImageUrl}${img.imgUrl}`
+                };
+            });
+
+            setThumbnails(imagePairs);
+
+            if (imagePairs.length > 0) {
+                setMainImage(imagePairs[0]);
             }
-            catch (e) {
-                setError(e);
-            }
-            finally {
-                setLoading(false)
-            }
-        };
 
+        } catch (e) {
+            // axios 에러 객체에서 더 자세한 정보를 얻을 수 있습니다.
+            console.error("상품 정보를 불러오는 데 실패했습니다:", e.response?.data || e.message);
+            setError(e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // productId가 있을 때만 fetchProduct 함수를 호출합니다.
+    if (productId) {
         fetchProduct();
-    }, [productId]);
+    }
+}, [productId]);
 
-    // 구매 확인 useEffect
-    // useEffect(() => {
-    //     const checkPurchased = async () => {
-    //         if (!isLoggedIn || !username || !productId) return;
-    //         try {
-    //             const baseUrl = import.meta.env.VITE_BACKEND_URL;
-    //             const res = await axios.get(`http://${baseUrl}/api/private/purchased/${username}/${productId}`);
-    //             setIsPurchased(res.data === true); // 백엔드 응답 형태에 따라 조정
-    //         } catch (err) {
-    //             console.error('구매 여부 확인 실패:', err);
-    //         }
-    //     };
-    //     checkPurchased();
-    // }, [isLoggedIn, username, productId]);
 
     // 리뷰 리스트 useEffect
     // useEffect(() => {

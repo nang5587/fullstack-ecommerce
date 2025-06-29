@@ -7,6 +7,9 @@ import TailButton from "../UI/TailButton";
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// ✅ 1. 설정된 axios 인스턴스(api)를 import 합니다.
+import api from '../api/axios';
+
 const MIN_PRICE = 0;
 const MAX_PRICE = 50000;
 
@@ -46,7 +49,6 @@ export default function SearchListing() {
 
     // 페이지 또는 필터 변경 시 상품 불러오기
     useEffect(() => {
-        // 키워드가 없으면 초기화하고 API 호출을 중단합니다.
         if (!keyword) {
             setIsLoading(false);
             setDisplayedProducts([]);
@@ -58,55 +60,30 @@ export default function SearchListing() {
             setIsLoading(true);
 
             try {
-                // 1. 요청 헤더 준비
-                const headers = new Headers();
-                headers.append("Content-Type", "application/json"); // 보내는 데이터 타입 명시 (필수는 아니지만 좋은 습관)
-
-                // 2. localStorage에서 토큰 가져오기
-                const token = localStorage.getItem('accessToken');
-
-                // 3. 토큰이 존재하면 Authorization 헤더에 추가
-                if (token) {
-                    headers.append("Authorization", `Bearer ${token}`);
-                }
-
-                // 4. 요청 URL 및 쿼리 파라미터 준비
                 const queryParams = new URLSearchParams(location.search);
                 queryParams.set('page', page);
                 queryParams.set('limit', PRODUCTS_PER_PAGE);
-
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const url = `http://${baseUrl}/api/public/search?${queryParams.toString()}`;
-
-                // 5. fetch 요청 시 headers를 포함한 옵션 객체 전달
-                const res = await fetch(url, {
-                    method: 'GET', // GET 요청은 기본값이지만 명시적으로 작성
-                    headers: headers // 준비된 헤더를 여기에 추가
+                
+                // ✅ 2. fetch 대신 'api.get'을 사용합니다.
+                // 토큰은 인터셉터가 자동으로 추가해주므로 헤더 설정이 필요 없습니다.
+                // params 객체를 사용하면 axios가 자동으로 쿼리 스트링을 만들어줍니다.
+                const res = await api.get('/api/public/search', {
+                    params: queryParams
                 });
 
-                // --- 여기부터는 기존 코드와 동일 ---
+                // ✅ 3. axios는 응답 데이터를 res.data에 담아줍니다.
+                const data = res.data || [];
 
-                if (!res.ok) { // 200번대 응답이 아닌 경우 에러 처리
-                    throw new Error(`API responded with status ${res.status}`);
-                }
-
-                const data = await res.json();
-
-                // 페이지에 따라 상품 목록을 설정하거나 추가합니다.
                 if (page === 1) {
                     setDisplayedProducts(data);
                 } else {
                     setDisplayedProducts(prev => [...prev, ...data]);
                 }
 
-                // 더 불러올 데이터가 있는지 확인합니다.
                 setHasMore(data.length === PRODUCTS_PER_PAGE);
 
-                if (page === 1 && data.length === 0) {
-                    setHasMore(false);
-                }
             } catch (error) {
-                console.error("Failed to fetch products:", error);
+                console.error("Failed to fetch products:", error.response?.data || error.message);
                 setHasMore(false);
             } finally {
                 setIsLoading(false);
@@ -114,7 +91,7 @@ export default function SearchListing() {
         };
 
         fetchProducts();
-    }, [page, location.search, keyword]);
+    }, [page, location.search, keyword]); // keyword 의존성은 유지하는 것이 좋습니다.
 
     const handleFilterChange = (changedFilter) => {
         const currentParams = new URLSearchParams(location.search);
@@ -175,12 +152,13 @@ export default function SearchListing() {
                 <div className="flex justify-between items-center mb-6">
                     {displayedProducts.length > 0 ? (
                         <h2 className="text-xl font-semibold">
-                            '{keyword}' 검색 결과 <span className="text-kalani-gold">{displayedProducts.length}</span>개
+                            '{keyword}' 검색 결과 <span className="text-kalani-gold">{filteredProducts.length}</span>개
                         </h2>
                     ) : (
+                        // 검색 결과가 없을 때도 공간을 차지하도록 invisible 처리
                         <h2 className="text-xl font-semibold invisible">Placeholder</h2>
                     )}
-                    {displayedProducts.length > 0 && <SortMenu sortOrder={sortOrder} onSortChange={handleSortChange} />}
+                    {filteredProducts.length > 0 && <SortMenu sortOrder={sortOrder} onSortChange={handleSortChange} />}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 

@@ -1,28 +1,26 @@
-// src/components/OrderCard.js
-
 import React from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquareText } from 'lucide-react'; 
-import { useNavigate } from 'react-router-dom';
+import { MessageSquareText } from 'lucide-react';
+import api from '../api/axios'; // ✅ baseURL을 사용하기 위해 api 인스턴스 import
 
-export default function OrderCard({ item }) {
-    const navigate = useNavigate();
+export default function OrderCard({ item, onReviewClick }) {
+
     const handleReviewClick = (e) => {
-        // 중요: 이벤트 버블링 방지
-        // 이 버튼을 클릭했을 때, 부모 div의 onClick(상세보기 열기)이 실행되지 않도록 막습니다.
         e.stopPropagation();
-
-        navigate(`/detail/${item.imgname}`); // 리뷰 작성 페이지로 이동합니다.
-        // TODO: 실제 리뷰 작성 페이지로 이동하거나 모달을 여는 로직을 여기에 추가합니다.
+        // ✅ item.imgname을 사용하여 상세 페이지로 이동
+        onReviewClick(item);
     };
-    const baseUrl = import.meta.env.VITE_BACKEND_URL;
+
+    // ✅ 이미지 URL을 안전하게 생성
+    const imageUrl = `${api.defaults.baseURL}${item.imgUrl}`;
 
     return (
-        // 1. 부모 div에 'group'과 'relative'가 이미 설정되어 있어 기준점으로 완벽합니다. 268/268450035_main.jpg
         <motion.div className="group relative w-full h-full rounded-[80px] overflow-hidden select-none shadow-kal">
             <img
-                src={`http://${baseUrl}/api/public/img/goods/${item.imgUrl}`}
-                alt={item.name}
+                // ✅ 안전하게 생성된 이미지 URL 사용
+                src={imageUrl}
+                // ✅ item.name 대신 item.productName 사용
+                alt={item.productName}
                 className="absolute top-0 left-0 w-full h-full object-cover object-center 
                             transition-transform duration-500 ease-in-out 
                             group-hover:scale-105"
@@ -30,22 +28,22 @@ export default function OrderCard({ item }) {
             />
 
             <div className="absolute top-7 left-7 w-full p-4">
-                {/* 제품 이름 등 다른 정보가 필요하면 여기에 추가 */}
+                {/* 제품 이름 표시 */}
+                <h3 className="text-white text-2xl font-bold text-shadow-lg">{item.productName}</h3>
             </div>
 
-            {/* ✅ 2. 리뷰 쓰기 버튼 추가 */}
-            <div className="absolute bottom-15 right-15">
-                <button
-                    onClick={handleReviewClick}
-                    className="px-9 py-5 bg-black text-white text-sm font-semibold 
+            {/* ✅ 리뷰 쓰기 버튼 위치 수정 (bottom-16, right-16) */}
+            {(item.orderInfo.orderstatus === '주문완료' || item.orderInfo.orderstatus === '배송완료') && (
+                <div className="absolute bottom-16 right-16">
+                    <button onClick={handleReviewClick} className="px-9 py-5 bg-black text-white text-sm font-semibold 
                                 rounded-full shadow-kal
                                 transform transition-all duration-300 ease-in-out
                                 hover:bg-kalani-gold hover:scale-105
-                                focus:outline-none focus:ring-2 focus:ring-kalani-gold focus:ring-offset-2"
-                >
-                    <MessageSquareText size={36} strokeWidth={2} />
-                </button>
-            </div>
+                                focus:outline-none focus:ring-2 focus:ring-kalani-gold focus:ring-offset-2" title="리뷰 작성하기">
+                        <MessageSquareText size={36} strokeWidth={2} />
+                    </button>
+                </div>
+            )}
         </motion.div>
     );
 }

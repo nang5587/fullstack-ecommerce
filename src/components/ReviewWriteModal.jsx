@@ -1,10 +1,11 @@
-// src/components/ReviewWriteModal.js
+// src/components/ReviewWriteModal.jsx
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Star, X } from 'lucide-react';
-import TailButton from '../UI/TailButton'; // 버튼 재사용
+import TailButton from '../UI/TailButton';
 import { Link } from 'react-router-dom';
+import api from '../api/axios'; // ✅ api 인스턴스 import
 
 export default function ReviewWriteModal({ item, onClose, onSubmit }) {
     const [rating, setRating] = useState(0);
@@ -17,14 +18,19 @@ export default function ReviewWriteModal({ item, onClose, onSubmit }) {
             alert('별점을 선택해주세요.');
             return;
         }
-        // 부모 컴포넌트로 제출할 데이터
+
+        // ✅ 1. 백엔드가 요구하는 형식에 맞춰 orderid를 추가합니다.
         const submittedReview = {
-            optionId: item.optionId, // 어떤 상품에 대한 리뷰인지 식별
+            orderid: item.orderInfo.orderid, // orderInfo 객체에서 orderid 가져오기
+            optionid: item.optionid,       // optionid는 그대로 사용
             rating,
             reviewtext: reviewText,
         };
         onSubmit(submittedReview);
     };
+
+    // ✅ 2. 이미지의 전체 URL을 생성합니다.
+    const imageUrl = item.imgUrl ? `${api.defaults.baseURL}${item.imgUrl}` : '';
 
     return (
         <motion.div
@@ -47,18 +53,17 @@ export default function ReviewWriteModal({ item, onClose, onSubmit }) {
 
                 <h2 className="text-2xl font-bold mb-4 text-center">리뷰 작성</h2>
 
-                {/* 리뷰할 상품 정보 */}
-                <Link to={`/datail/${item.imgname}`}>
+                {/* ✅ 3. Link 경로와 이미지 소스, 상품명을 수정합니다. */}
+                <Link to={`/detail/${item.imgname}`}>
                     <div className="flex items-center gap-4 p-4 bg-gray-100 rounded-lg mb-6">
-                        <img src={item.imageUrl} alt={item.productName} className="w-20 h-20 rounded-md object-cover" />
+                        <img src={imageUrl} alt={item.productName} className="w-20 h-20 rounded-md object-cover" />
                         <div>
                             <h3 className="font-semibold text-lg">{item.productName}</h3>
                         </div>
                     </div>
                 </Link>
-                {/* 리뷰 작성 폼 */}
+                
                 <form onSubmit={handleSubmit}>
-                    {/* 별점 입력 */}
                     <div className="mb-6 text-center">
                         <p className="mb-2">상품은 어떠셨나요?</p>
                         <div className="flex justify-center items-center" onMouseLeave={() => setHoverRating(0)}>
@@ -78,7 +83,6 @@ export default function ReviewWriteModal({ item, onClose, onSubmit }) {
                         </div>
                     </div>
 
-                    {/* 텍스트 입력 */}
                     <textarea
                         value={reviewText}
                         onChange={(e) => setReviewText(e.target.value)}

@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect, useCallback } from "react";
 import DateCarousel from "./DateCarousel";
 import DateFilter from "./DateFilter";
 import { format } from 'date-fns';
-import api from '../api/axios'
+import api from '../api/axios';
+import { AnimatePresence } from 'framer-motion';
+import ReviewWriteModal from "./ReviewWriteModal";
 
 // import orderListDummy from '../data/orderListDummy';
 
@@ -53,17 +55,24 @@ export default function OrderList() {
     const [startDate, setStartDate] = useState(null);
     const [endDate, setEndDate] = useState(null);
     const [activePreset, setActivePreset] = useState('전체');
+    const [isLoading, setIsLoading] = useState(true);
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+    const [reviewTargetItem, setReviewTargetItem] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // 전체 목록 가져오기
     const fetchOrders = useCallback(async () => {
         try {
             const res = await api.get('/api/member/orderlist');
-            console.log("백앤드로 받은 주문내역 : ", res);
-            const orders = res.data?.orders ?? [];
-            setOrders(Array.isArray(orders) ? orders : []);
+            console.log("백앤드로 받은 주문내역 : ", res.data);
+            // ✅ 백엔드 응답이 `orders` 키를 포함하지 않으므로, res.data를 직접 사용합니다.
+            const fetchedOrders = res.data ?? [];
+            setOrders(Array.isArray(fetchedOrders) ? fetchedOrders : []);
         } catch (e) {
-            console.error('주문 목록 불러오기 실패:', e);
+            console.error('주문 목록 불러오기 실패:', e.response?.data || e.message);
             setOrders([]);
+        } finally {
+            setIsLoading(false);
         }
     }, []);
 
@@ -194,6 +203,32 @@ export default function OrderList() {
         }
     };
 
+    const handleOpenReviewModal = (item) => {
+        setReviewTargetItem(item); // 어떤 아이템인지 저장
+        setIsReviewModalOpen(true); // 모달 열기
+    };
+
+    const handleReviewSubmit = async (formData) => {
+        // formData: { orderid, optionid, rating, reviewtext }
+        setIsSubmitting(true);
+        try {
+            // ✅ 백엔드 API 경로가 '/api/addreviews'인지 확인 필요
+            await api.post('/api/member/addreviews', formData);
+
+            alert('리뷰가 성공적으로 등록되었습니다.');
+            setIsReviewModalOpen(false);
+            setReviewTargetItem(null);
+
+            // 주문 목록을 다시 불러와서 '리뷰 작성' 버튼이 사라지게 함
+            await fetchOrders();
+        } catch (error) {
+            console.error('리뷰 제출 실패:', error.response?.data || error.message);
+            alert(`리뷰 등록에 실패했습니다: ${error.response?.data?.message || '서버 오류'}`);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
     // 컴포넌트가 처음 렌더링될 때 '전체' 프리셋을 기본으로 설정
     useEffect(() => {
         handlePresetClick('전체');
@@ -206,18 +241,12 @@ export default function OrderList() {
             <div className="relative overflow-hidden min-h-screen">
                 <BackgroundLayers />
                 <div className="relative z-10 p-8">
-                    {/* 헤더 */}
                     <div className="flex justify-between items-center pb-6 border-b border-gray-400/30">
                         <h2 id="font3" className="text-3xl text-gray-700 font-bold">
                             ORDER LIST
                         </h2>
-                        {/* 이 부분은 Q&A 페이지의 '+새 질문하기' 버튼이므로, 주문 목록에서는 필요 없을 수 있습니다. */}
-                        {/* <button className="...">
-                            ...
-                        </button> */}
                     </div>
 
-                    {/* 카테고리 필터 (DateFilter) */}
                     <div className="flex justify-center mt-6 py-2">
                         <DateFilter
                             startDate={startDate}
@@ -230,22 +259,28 @@ export default function OrderList() {
                         />
                     </div>
 
-                    {/* Q&A 카드 그리드 (DateCarousel) */}
                     <div className="p-4 md:p-6 max-w-5xl mx-auto space-y-12 mt-4">
-                        {/* 필터링된 주문 목록을 날짜별로 렌더링 */}
-                        {groupedByDate.map((group, index) => (
+                        {/* ✅ 로딩 상태 UI 추가 */}
+                        {isLoading && (
+                            <div className="text-center py-20 text-gray-500">
+                                <p className="text-xl font-semibold">주문 내역을 불러오는 중입니다...</p>
+                            </div>
+                        )}
+
+                        {/* ✅ 로딩이 끝난 후 렌더링 */}
+                        {!isLoading && groupedByDate.map((group, index) => (
                             <DateCarousel
                                 key={`${group.date}-${index}`}
                                 date={group.date}
                                 items={group.items}
                                 selectedItem={selectedItem}
                                 onItemSelect={handleItemSelect}
-                                onCancel={handleCancelOrder} // 주문 취소 핸들러 전달
+                                onCancel={handleCancelOrder}
+                                onReviewClick={handleOpenReviewModal}
                             />
                         ))}
 
-                        {/* 필터링 결과가 없을 때 메시지 */}
-                        {groupedByDate.length === 0 && (
+                        {!isLoading && groupedByDate.length === 0 && (
                             <div className="text-center py-20 text-gray-500">
                                 <p className="text-xl font-semibold">
                                     {activePreset === '전체' && !startDate
@@ -257,6 +292,18 @@ export default function OrderList() {
                         )}
                     </div>
                 </div>
+                {/* ✅ 리뷰 작성 모달 렌더링 */}
+                <AnimatePresence>
+                    {isReviewModalOpen && (
+                        <ReviewWriteModal
+                            item={reviewTargetItem}
+                            onClose={() => setIsReviewModalOpen(false)}
+                            onSubmit={handleReviewSubmit}
+                        // isSubmitting 상태를 전달하여 버튼 비활성화 등에 사용할 수 있습니다.
+                        // 현재 ReviewWriteModal에는 이 prop이 없지만, 추가하면 좋습니다.
+                        />
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

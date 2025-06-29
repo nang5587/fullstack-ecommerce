@@ -6,46 +6,38 @@ import { useEffect, useState } from 'react';
 
 import 'swiper/css';
 
-import axios from 'axios';
-
-import jwt_decode from "jwt-decode";
+// ✅ 1. axios 직접 임포트 대신, 설정된 api 인스턴스를 임포트합니다.
+import api from '../api/axios'; 
 
 // component 목록
 import ProductCard from "../components/ProductCard";
 
 export default function ProductCarousel({ title, column }) {
     const [products, setProducts] = useState([]);
-    // ✅ 로딩 상태를 추가하여 데이터가 없을 때 바로 컴포넌트가 사라지는 것을 방지
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchProducts = async () => {
             setLoading(true);
             try {
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                const url = `http://${baseUrl}/api/public/${column}`;
-                const config = { headers: {} };
-
-                // 'recommend' 캐러셀일 때만 인증 헤더 추가
-                if (column === "recommend") {
-                    const token = localStorage.getItem('accessToken');
-                    // 토큰이 없으면 그냥 요청을 보내지 않고 함수를 종료.
-                    // 어차피 Home.js에서 추천 상품이 없는 레이아웃을 보여주므로 여기서 아무것도 렌더링하지 않으면 됨.
-                    if (!token) {
-                        setProducts([]);
-                        return;
-                    }
-                    config.headers['Authorization'] = `Bearer ${token}`;
+                // ✅ 2. 'recommend'일 때 토큰이 없으면 아예 요청을 보내지 않고 종료합니다.
+                // 인터셉터가 토큰을 자동으로 붙여주므로 여기서 수동으로 헤더를 설정할 필요가 없습니다.
+                if (column === "recommend" && !localStorage.getItem('accessToken')) {
+                    setProducts([]);
+                    setLoading(false); // 로딩 상태도 종료
+                    return;
                 }
 
-                const response = await axios.get(url, config);
-                const data = response.data;
-                console.log(`[ProductCarousel - ${column}] 서버로부터 받은 데이터:`, data);
+                // ✅ 3. axios.get 대신 api.get을 사용하고, baseURL 이후의 경로만 적습니다.
+                const response = await api.get(`/api/public/${column}`);
+                
+                console.log(`[ProductCarousel - ${column}] 서버로부터 받은 데이터:`, response.data);
 
-                const items = column === "popular" ? data.popularItems : data.recommendedItems;
+                // ✅ 4. axios는 데이터를 response.data에 담아주므로 바로 사용합니다.
+                const items = column === "popular" ? response.data.popularItems : response.data.recommendedItems;
                 const validItems = items || [];
 
-                // ✅ 핵심: 내용 비교 후 업데이트. 불필요한 리렌더링 방지.
+                // 내용 비교 후 업데이트. 불필요한 리렌더링 방지.
                 setProducts(prevProducts => {
                     if (JSON.stringify(prevProducts) !== JSON.stringify(validItems)) {
                         return validItems;
@@ -54,6 +46,7 @@ export default function ProductCarousel({ title, column }) {
                 });
 
             } catch (err) {
+                // api 인스턴스를 사용하면 에러 객체 구조가 일관됩니다.
                 console.error(`[ProductCarousel - ${column}] 상품 데이터를 불러오는 데 실패:`, err.response?.data || err.message);
                 setProducts([]); // 에러 발생 시 확실하게 비워줌
             } finally {
@@ -62,15 +55,10 @@ export default function ProductCarousel({ title, column }) {
         };
 
         fetchProducts();
-
-        // ✅ 의존성 배열을 'column'으로 단순화.
-        // 이 컴포넌트는 'column' prop이 바뀔 때만 데이터를 다시 가져와야 합니다.
     }, [column]);
 
+    // 로딩 중이거나, 로딩이 끝났는데 상품이 없는 경우 아무것도 렌더링하지 않음
     if (loading || products.length === 0) {
-        // 단, 추천 상품 확인을 위해 로딩이 끝나고 상품이 없을 때까지 기다려야 하므로,
-        // 로딩 상태를 체크하는 것이 중요합니다.
-        // `column === 'recommend'`일 때는 렌더링을 하지 않더라도, useEffect는 실행되어 onDataLoaded를 호출합니다.
         return null;
     }
 
@@ -85,7 +73,6 @@ export default function ProductCarousel({ title, column }) {
                 slidesPerView="auto"
             >
                 {products.map((product) => (
-                    // ✅ key는 고유해야 합니다. fullcode가 없다면 다른 고유값을 사용해야 합니다.
                     <SwiperSlide key={product.fullcode || product.imgname} className="!w-[330px] h-auto">
                         <div className="h-full">
                             <ProductCard product={product} />

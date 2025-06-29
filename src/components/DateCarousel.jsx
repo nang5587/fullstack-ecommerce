@@ -15,35 +15,28 @@ import 'swiper/css/effect-coverflow';
 import 'swiper/css/pagination';
 
 // 6. 부모로부터 props를 받도록 수정합니다.
-export default function DateCarousel({ date, items, selectedItem, onItemSelect, onCancel }) {
+export default function DateCarousel({ date, items, selectedItem, onItemSelect, onCancel, onReviewClick }) {
     const [swiperInstance, setSwiperInstance] = useState(null);
 
-    // 7. 현재 이 캐러셀에 속한 아이템이 선택되었는지 확인합니다.
+    // ✅ 현재 캐러셀에 속한 아이템이 선택되었는지 확인 (수정 없음)
     const isDetailsOpen = selectedItem && items.some(item => item.optionid === selectedItem.optionid);
 
     useEffect(() => {
         if (swiperInstance) {
-            if (isDetailsOpen) {
-                // 상세 정보가 열리면 스와이프 기능을 비활성화합니다.
-                swiperInstance.allowTouchMove = false;
-                swiperInstance.pagination.el.classList.add('swiper-pagination-lock'); // 페이지네이션 클릭도 막기
-            } else {
-                // 상세 정보가 닫히면 스와이프 기능을 다시 활성화합니다.
-                swiperInstance.allowTouchMove = true;
-                swiperInstance.pagination.el.classList.remove('swiper-pagination-lock');
-            }
+            // 상세 정보가 열렸을 때/닫혔을 때 스와이프 기능 제어 (수정 없음)
+            swiperInstance.allowTouchMove = !isDetailsOpen;
+            swiperInstance.pagination.el.classList.toggle('swiper-pagination-lock', isDetailsOpen);
         }
     }, [isDetailsOpen, swiperInstance]);
-
 
     return (
         <div className="w-full">
             <h3 className="text-xl font-semibold mb-4 ml-2 text-gray-500 text-center">{date}</h3>
-            {items.length > 0 && items[0].orderstatus === '주문완료' && (
+            {/* ✅ 주문 상태와 주문 취소 버튼 (items[0].orderInfo.orderid 로 수정) */}
+            {items.length > 0 && items[0].orderInfo.orderstatus === '주문완료' && (
                 <div className="flex justify-end mb-4">
                     <TailButton
-                        // onCancel 함수에 현재 그룹의 주문 ID(items[0].orderId)를 전달합니다.
-                        onClick={() => onCancel(items[0].orderId)}
+                        onClick={() => onCancel(items[0].orderInfo.orderid)}
                         className="px-4 py-2 bg-opacity-0 border-gray-400"
                     >
                         주문 취소
@@ -55,17 +48,15 @@ export default function DateCarousel({ date, items, selectedItem, onItemSelect, 
                 <div className="flex justify-center">
                     {items.length > 0 && (
                         <div
-                            className="w-[600px] h-[600px]"
-                            // 8. 클릭 핸들러를 연결합니다.
+                            className="w-[600px] h-[600px] cursor-pointer" // 클릭 가능함을 나타내기 위해 cursor-pointer 추가
                             onClick={() => onItemSelect(items[0])}
                         >
-                            <OrderCard item={items[0]} />
+                            <OrderCard item={items[0]} onReviewClick={onReviewClick} />
                         </div>
                     )}
                 </div>
             ) : (
                 <Swiper
-                    // 4. onSwiper prop을 통해 Swiper 인스턴스를 state에 저장합니다.
                     onSwiper={setSwiperInstance}
                     modules={[EffectCoverflow, Pagination]}
                     effect={'coverflow'}
@@ -85,10 +76,11 @@ export default function DateCarousel({ date, items, selectedItem, onItemSelect, 
                     {items.map((item) => (
                         <SwiperSlide key={item.optionid} style={{ width: '600px', height: '600px' }}>
                             <div
-                                className="w-full h-full"
+                                className="w-full h-full cursor-pointer" // 클릭 가능함을 나타내기 위해 cursor-pointer 추가
                                 onClick={() => onItemSelect(item)}
                             >
-                                <OrderCard item={item[0]} />
+                                {/* ✅ item[0]이 아닌 item을 전달 */}
+                                <OrderCard item={item} onReviewClick={onReviewClick} />
                             </div>
                         </SwiperSlide>
                     ))}

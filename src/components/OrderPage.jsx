@@ -104,7 +104,7 @@ export default function OrderPage() {
     }, []);
 
     // ✅ 주소 관리 모달에서 변경사항이 생겼을 때 호출될 함수
-    const handleAddressDataChange = async  () => {
+    const handleAddressDataChange = async () => {
         refetchAddresses(); // 주소 목록을 다시 불러와 화면을 최신 상태로 유지
         setIsAddressModalOpen(false); // 작업이 끝났으니 모달을 닫음
     };
@@ -138,37 +138,45 @@ export default function OrderPage() {
                 throw new Error("선택된 배송지 정보를 찾을 수 없습니다.");
             }
 
-            // 백엔드로 보낼 최종 페이로드 구성
-            const orderPayload = {
-                orderInfo: {
-                    name: chosenAddress.name,
-                    zip: chosenAddress.zip,
-                    address1: chosenAddress.address1,
-                    address2: chosenAddress.address2,
-                    phone: chosenAddress.phone,
-                    payment: payment,
-                    total: total,
-                    orderstatus: "주문완료"
-                },
-                items: orderItems.map(item => ({
-                    optionid: item.optionid,
-                    quantity: item.quantity,
-                    price: item.price
-                }))
-            };
+            const orderPayload =  // 1. 최상위 구조를 배열로 변경
+                {
+                    orderInfo: { // 2. orderInfo에는 주문 관련 정보만 포함
+                        // username은 토큰에서 추출하므로 프론트에서 보낼 필요 없음
+                        total: total,
+                        orderstatus: "주문완료",
+                        payment: payment,
+                        // orderdate는 백엔드에서 생성하므로 보낼 필요 없음
+                    },
+                    address: { // 3. address 객체를 명시적으로 생성
+                        // addressId는 기존 주소를 식별하기 위해 필요할 수 있습니다.
+                        // 백엔드가 addressId만 받아서 처리하는지, 아니면 전체 주소 정보를 받는지 확인 필요
+                        addressId: chosenAddress.addressId, // ★★★ 백엔드와 협의 필요 ★★★
+                        name: chosenAddress.name,
+                        zip: chosenAddress.zip,
+                        address1: chosenAddress.address1,
+                        address2: chosenAddress.address2,
+                        phone: chosenAddress.phone,
+                        main: chosenAddress.isMain, // isMain -> main으로 필드명 변경
+                        // deleteAddr는 주문 시 보낼 필요 없음
+                    },
+                    items: orderItems.map(item => ({ // 4. items 구조는 그대로 사용
+                        optionid: item.optionid,
+                        quantity: item.quantity,
+                        price: item.price
+                    }))
+                }
+            ;
 
             console.log('📦 백엔드로 전송할 최종 주문 정보:', JSON.stringify(orderPayload, null, 2));
 
-            const baseUrl = import.meta.env.VITE_BACKEND_URL;
-            const orderResponse = await fetch(`http://${baseUrl}/api/member/orders`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify(orderPayload),
-            });
+            // 이제 이 orderPayload를 보내면 됩니다.
+            const response = await api.post('/api/member/orders', orderPayload);
 
-            if (!orderResponse.ok) { throw new Error('주문에 실패했습니다.'); }
+            console.log('🎉 주문 성공! 서버 응답:', response.data);
 
+            // ✅ 2. 주문 성공 후 로직은 그대로 유지합니다.
             await removeItemsFromCart(orderItems);
+
             localStorage.removeItem('orderItems');
             alert('주문이 완료되었습니다!');
             navigate('/');

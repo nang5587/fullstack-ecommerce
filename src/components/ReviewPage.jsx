@@ -1,177 +1,92 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 
 import TailButton from '../UI/TailButton';
-
 import ReviewWriteForm from './ReviewWriteForm';
 import ErrorMessage from './ErrorMessage';
 
 import api from '../api/axios';
 
-const dummyReviews = [
-    {
-        username: "user",
-        name: "김지은",
-        date: "2025-06-18",
-        content: "옷이 정말 편하고 예뻐요! 배송도 빨랐습니다.",
-        rating: 5
-    },
-    {
-        username: "user2",
-        name: "박철수",
-        date: "2025-06-17",
-        content: "생각보다 재질이 두꺼워 여름엔 더울 것 같아요.",
-        rating: 3
-    },
-    {
-        username: "dummy",
-        name: "lee_sunny",
-        date: "2025-06-16",
-        content: "핏이 예쁘고 컬러도 화면과 동일해서 만족했어요.",
-        rating: 4
-    },
-    {
-        username: "member",
-        name: "Minkyu",
-        date: "2025-06-15",
-        content: "사이즈가 조금 작게 나왔어요. 한 사이즈 업 추천!",
-        rating: 2
-    },
-    {
-        username: "hong",
-        name: "홍길동",
-        date: "2025-06-14",
-        content: "가성비 최고입니다. 다른 색상도 구매할 예정이에요.",
-        rating: 5
-    },
-    {
-        username: "sujin_park",
-        name: "박수진",
-        date: "2025-06-13",
-        content: "핏이 예쁘고 세탁 후에도 형태가 잘 유지돼요.",
-        rating: 4,
-    },
-    {
-        username: "minjae_choi",
-        name: "최민재",
-        date: "2025-06-12",
-        content: "배송이 빨랐고 색상이 화면과 똑같아요.",
-        rating: 5,
-    },
-    {
-        username: "hyeon_kim",
-        name: "김현",
-        date: "2025-06-11",
-        content: "생각보다 얇아서 겨울엔 못 입을 것 같아요.",
-        rating: 2,
-    },
-    {
-        username: "sora_lee",
-        name: "이소라",
-        date: "2025-06-10",
-        content: "디자인이 독특해서 마음에 들어요. 추천합니다!",
-        rating: 5,
-    },
-    {
-        username: "jaehyun_l",
-        name: "이재현",
-        date: "2025-06-09",
-        content: "사이즈가 정사이즈보다 작게 나왔네요. 참고하세요.",
-        rating: 3,
-    },
-    {
-        username: "jiyoon_y",
-        name: "윤지윤",
-        date: "2025-06-08",
-        content: "재질이 부드럽고 착용감이 좋아요.",
-        rating: 5,
-    },
-    {
-        username: "dongho_k",
-        name: "김동호",
-        date: "2025-06-07",
-        content: "퀄리티는 괜찮은데 가격 대비 아쉬운 편입니다.",
-        rating: 3,
-    },
-    {
-        username: "eunji_h",
-        name: "한은지",
-        date: "2025-06-06",
-        content: "여름용으로 딱이에요! 시원하고 가벼워요.",
-        rating: 4,
-    },
-    {
-        username: "yoonsu_p",
-        name: "박윤수",
-        date: "2025-06-05",
-        content: "무난하게 입기 좋아요. 회사 출근룩으로 잘 입고 있어요.",
-        rating: 4,
-    },
-    {
-        username: "heesoo_c",
-        name: "최희수",
-        date: "2025-06-04",
-        content: "바느질 마감이 살짝 아쉬웠지만 전체적으로 만족해요.",
-        rating: 4,
-    }
-];
-
-
 export default function ReviewPage({ isLoggedIn, productId, username }) {
+    const [reviews, setReviews] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSubmitting, setIsSubmitting] = useState(false); // ✅ 리뷰 제출 중 로딩 상태
+    const [reviewTarget, setReviewTarget] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [visibleCount, setVisibleCount] = useState(5);
     const [errorMsg, setErrorMsg] = useState('');
 
-    // 리뷰 리스트 useEffect
-    // useEffect(() => {
-    //     const fetchReviews = async () => {
-    //         try {
-    //             setReviewLoading(true);
-    //             const baseUrl = import.meta.env.VITE_BACKEND_URL;
-    //             const res = await axios.get(`http://${baseUrl}/api/public/reviews/${productId}`);
-    //             setReviews(res.data); // ← 서버 응답 형태에 따라 조정
-    //         } catch (err) {
-    //             console.error("리뷰 데이터를 불러오는 데 실패함: ", err);
-    //             setReviewError(err);
-    //         } finally {
-    //             setReviewLoading(false);
-    //         }
-    //     };
-
-    //     fetchReviews();
-    // }, [productId]);
-
-    const averageRating = (
-        dummyReviews.reduce((sum, r) => sum + r.rating, 0) / dummyReviews.length
-    ).toFixed(1);
-
-    const handleReviewSubmit = async ({ text, rating }) => {
-        try {
-            const baseUrl = import.meta.env.VITE_BACKEND_URL;
-            // ⭐
-            await axios.post(`http://${baseUrl}/api/public/reviews`, {
-                orderid,
-                optionid,
-                username,
-                imgname: productId,
-                reviewtext: text,
-                rating
-            });
-
-            // ⭐
-            const res = await axios.get(`http://${baseUrl}/api/public/reviewlist/${productId}`);
-            setReviews(res.data);
-
-            setShowForm(false);
+    // ✅ 리뷰 목록을 다시 불러오는 함수를 분리하여 재사용성을 높입니다.
+    const fetchReviews = async () => {
+        if (!productId) {
+            setReviews([]);
+            setIsLoading(false);
+            return;
         }
-        catch (err) {
-            console.error("리뷰 등록 실패:", err);
-            // ⭐
-            setErrorMsg("리뷰 등록에 실패했습니다.");
+        setIsLoading(true);
+        try {
+            const res = await api.get(`/api/public/reviews/product/${productId}`);
+            const validReviews = Array.isArray(res.data) ? res.data.filter(r => r.remain) : [];
+            setReviews(validReviews);
+        } catch (err) {
+            console.error("리뷰 데이터를 불러오는 데 실패함: ", err.response?.data || err.message);
+            setReviews([]);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     useEffect(() => {
-        // 페이지 진입 시 visibleCount 초기화
+        fetchReviews();
+    }, [productId]);
+
+    const averageRating = reviews.length > 0
+        ? (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length).toFixed(1)
+        : '0.0';
+
+    // ✅ 리뷰 제출 핸들러 수정
+    const handleReviewSubmit = async (formData) => {
+        // formData에는 { text, rating, orderid, optionid }가 들어올 것으로 가정합니다.
+        // 이 값들은 ReviewWriteForm에서 받아와야 합니다.
+        if (!formData.orderid || !formData.optionid) {
+            setErrorMsg("리뷰를 작성할 주문 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setErrorMsg('');
+
+        try {
+            // 1. 백엔드가 요구하는 데이터 형식에 맞춰 payload를 생성합니다.
+            const payload = {
+                orderid: formData.orderid,
+                optionid: formData.optionid,
+                reviewtext: formData.text,
+                rating: formData.rating,
+                // username과 imgname은 백엔드에서 토큰과 요청 경로로 알 수 있으므로
+                // 보통 프론트에서 보낼 필요가 없습니다. (API 명세에 따라 조절)
+            };
+
+            console.log("리뷰 등록 요청 데이터:", payload);
+
+            // 2. 백엔드 주소(@PostMapping("/addreviews"))에 맞게 API를 호출합니다.
+            await api.post('/api/public/addreviews', payload);
+
+            alert('리뷰가 성공적으로 등록되었습니다!');
+            setShowForm(false); // 리뷰 작성 폼을 닫습니다.
+
+            // 3. 리뷰 등록 성공 후, 리뷰 목록을 다시 불러와 화면을 갱신합니다.
+            await fetchReviews();
+
+        } catch (err) {
+            console.error("리뷰 등록 실패:", err.response?.data || err.message);
+            setErrorMsg(err.response?.data?.message || "리뷰 등록에 실패했습니다. 다시 시도해주세요.");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+
+    useEffect(() => {
         setVisibleCount(5);
     }, [productId]);
 
@@ -179,8 +94,8 @@ export default function ReviewPage({ isLoggedIn, productId, username }) {
         setVisibleCount(prev => prev + 5);
     };
 
-    const visibleReviews = dummyReviews.slice(0, visibleCount);
-    const hasMore = visibleCount < dummyReviews.length;
+    const visibleReviews = reviews.slice(0, visibleCount);
+    const hasMore = visibleCount < reviews.length;
 
     useEffect(() => {
         if (errorMsg) {
@@ -197,41 +112,29 @@ export default function ReviewPage({ isLoggedIn, productId, username }) {
                 <div>
                     <h2 className="text-xl font-bold">
                         리뷰 <span className="text-2xl ml-2">{averageRating}</span>
-                        <span className="text-gray-500 ml-1">{`— ${dummyReviews.length} Reviews`}</span>
+                        <span className="text-gray-500 ml-1">{`— ${reviews.length} Reviews`}</span>
                     </h2>
-                </div>
-                <div className='flex justify-end items-center mb-10'>
-                    {isLoggedIn && (
-                        <TailButton
-                            onClick={() => setShowForm(prev => !prev)}
-                            className="border border-gray-300 px-4 py-2 rounded"
-                        >
-                            {showForm ? '닫기' : '리뷰 작성'}
-                        </TailButton>
-                    )}
                 </div>
 
                 {errorMsg && <ErrorMessage errorMsg={errorMsg} />}
 
-                {/* 폼은 여기 아래에 나타나도록 위치 조정 */}
-                {isLoggedIn && showForm && (
-                    <div className="mb-8">
-                        <ReviewWriteForm onSubmit={handleReviewSubmit} setErrorMsg={setErrorMsg} />
-                    </div>
+                {isLoading && <div className="text-center py-10">리뷰를 불러오는 중...</div>}
+                {!isLoading && reviews.length === 0 && (
+                    <div className="text-center py-10 text-gray-500">작성된 리뷰가 없습니다.</div>
                 )}
 
-                {visibleReviews.map(review => (
-                    <div key={review.username} className="border-b border-gray-300 py-6 flex gap-4">
+                {!isLoading && visibleReviews.map(review => (
+                    <div key={review.reviewid} className="border-b border-gray-300 py-6 flex gap-4">
                         <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-bold text-gray-600">
-                            {review.username.split(' ').map(n => n[0]).join('').toUpperCase()}
+                            {review.username.substring(0, 2).toUpperCase()}
                         </div>
 
                         <div className="flex-1">
                             <div className="flex justify-between items-center">
                                 <div className="font-medium">{review.username}</div>
-                                <div className="text-sm text-gray-400">{review.date}</div>
+                                <div className="text-sm text-gray-400">{new Date(review.createdate).toLocaleDateString()}</div>
                             </div>
-                            <p className="text-gray-700 mt-2">{review.content}</p>
+                            <p className="text-gray-700 mt-2">{review.reviewtext}</p>
                             <div className="text-yellow-500 mt-1">
                                 {'★'.repeat(review.rating) + '☆'.repeat(5 - review.rating)}
                             </div>
@@ -239,7 +142,7 @@ export default function ReviewPage({ isLoggedIn, productId, username }) {
                     </div>
                 ))}
 
-                {hasMore && (
+                {hasMore && !isLoading && (
                     <div className="mt-6 text-center">
                         <TailButton onClick={handleLoadMore} className="px-4 py-2 border border-gray-300 rounded">
                             리뷰 더 보기

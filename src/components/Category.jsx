@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import categoryKR from "../local/categoryKR";
+import api from "../api/axios";
 
 export default function Category({ isCateOpen, onClose }) {
     const [category, setCategory] = useState([]);
@@ -14,11 +15,13 @@ export default function Category({ isCateOpen, onClose }) {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const baseUrl = import.meta.env.VITE_BACKEND_URL;
-                console.log(`http://${baseUrl}/api/public/categoryTree`)
-                const res = await fetch(`http://${baseUrl}/api/public/categoryTree`);
-                const data = await res.json();
-                setCategory(data.categoryTree);
+                // const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                const res = await api.get("/api/public/categoryTree");
+                // console.log()
+                // const res = await fetch(`http://${baseUrl}/api/public/categoryTree`);
+                // const data = await res.json();
+                setCategory(res.data.categoryTree);
+                // setCategory(data.categoryTree);
             } catch (err) {
                 console.error("카테고리를 불러오는 데 실패함: ", err);
             }

@@ -5,9 +5,10 @@ const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 // 인스턴스 생성
 const api = axios.create({
-    baseURL: `http://${baseURL}`,
+    baseURL: `https://${baseURL}`,
     headers: {
         'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
     },
 });
 

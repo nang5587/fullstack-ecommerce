@@ -12,6 +12,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleExclamation } from '@fortawesome/free-solid-svg-icons';
 import { FcGoogle } from 'react-icons/fc';
 
+// ✅ 1. 설정된 axios 인스턴스(api)를 import 합니다.
+import api from '../api/axios';
+
 export default function Login() {
     const { login } = useAuth();
     const navigate = useNavigate();
@@ -54,63 +57,51 @@ export default function Login() {
         }
 
         try {
-            const baseUrl = import.meta.env.VITE_BACKEND_URL;
-            const response = await fetch(`http://${baseUrl}/api/public/login`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ username, password }),
-                credentials: "include",
-            });
+            // ✅ 2. fetch 대신 'api.post'를 사용합니다.
+            // baseURL은 api 인스턴스에 이미 설정되어 있으므로 뒷부분 경로만 적어줍니다.
+            // body 데이터는 두 번째 인자로 전달합니다.
+            const response = await api.post('/api/public/login', { username, password });
 
-            if (!response.ok) {
-                setErrorMsg("로그인에 실패했습니다." || data.message)
+            // ✅ 3. axios는 응답 헤더를 response.headers에서 바로 접근할 수 있습니다.
+            // 'authorization' 헤더를 소문자로 접근하는 것이 더 안전합니다.
+            let authToken = response.headers['authorization'];
+
+            if (authToken) {
+                authToken = authToken.replace("Bearer ", "");
+                localStorage.setItem('accessToken', authToken);
+                console.log('로그인 성공! 토큰을 저장했습니다.');
+                
+                login(authToken);
+                navigate(redirect || "/");
+            } else {
+                // 이 경우는 보통 백엔드에서 토큰을 보내주지 않은 경우입니다.
+                setErrorMsg("로그인에 실패했습니다. (토큰 없음)");
+                console.error('응답 헤더에 토큰이 없습니다.');
             }
-            else {
-                const headers = response.headers;
 
-                // 'Authorization' 헤더에서 토큰 값을 추출합니다.
-                let authToken = headers.get('Authorization');
-
-                // 헤더에 토큰이 있는지 확인하고 로컬 스토리지에 저장합니다.
-                if (authToken) {
-                    authToken = authToken.replace("Bearer ", "");
-                    localStorage.setItem('accessToken', authToken);
-                    console.log('로그인 성공! 토큰을 저장했습니다.');
-                    // 여기서 로그인 후 다음 페이지로 이동하는 등의 로직을 추가할 수 있습니다.
-                    login(authToken);
-                    navigate(redirect || "/");
-                } else {
-                    console.error('응답 헤더에 토큰이 없습니다.');
-                } // 새로고침 안 해서 부드러운 이동
-            }
-        }
-        catch (error) {
-            setErrorMsg("서버와 통신 중 오류가 발생했습니다.")
-            // console.log("로그인 응답:", data);
-            console.error(error);
-        }
-        finally {
+        } catch (error) {
+            // ✅ 4. axios는 2xx가 아닌 응답을 받으면 자동으로 에러를 throw합니다.
+            // 에러 메시지는 error.response.data에서 더 자세히 확인할 수 있습니다.
+            const message = error.response?.data?.message || "서버와 통신 중 오류가 발생했습니다.";
+            setErrorMsg(message);
+            console.error("로그인 실패:", error.response || error);
+        } finally {
             setLoading(false);
         }
     };
 
     const handleKeyDown = (event) => {
-        // 눌린 키가 'Enter'이고, 로딩 중이 아닐 때만 로그인 함수를 호출합니다.
         if (event.key === 'Enter' && !loading) {
             handleLogin();
         }
     }
-    // const baseUrl = import.meta.env.VITE_BACKEND_URL;
-    // const handleNaverLogin = () => {
-    //     window.location.href = `http://${baseUrl}/oauth2/authorization/naver`;
-    // };
 
     return (
         <div className="w-full flex items-center justify-center bg-kalani-navy min-h-screen p-4 sm:p-6 lg:p-8">
             <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 shadow-2xl rounded-2xl overflow-hidden">
                 <div className="hidden md:block w-full h-full">
                     <img
-                        src="src/assets/loginImg/2.jpg"
+                        src="/src/assets/loginImg/2.jpg" // public 폴더 기준 경로로 수정하는 것이 좋습니다.
                         alt="Brand identity"
                         className="w-full h-full object-cover"
                     />
@@ -132,7 +123,6 @@ export default function Login() {
                         <a href="#" className="hover:text-kalani-ash transition-colors">아이디 찾기</a>
                     </div>
 
-                    {/* [디자인 4] 에러 메시지 UI 개선 */}
                     <div className={`transition-all duration-300 ${errorMsg ? 'mt-6 opacity-100' : 'opacity-0 h-0'}`}>
                         {errorMsg && (
                             <div className="p-3 flex items-center gap-3 text-sm rounded-lg bg-red-50 text-red-700">
@@ -149,7 +139,6 @@ export default function Login() {
                         </TailButton>
                     </div>
 
-                    {/* [디자인 5] '또는' 구분선 추가 */}
                     <div className="my-8 flex items-center">
                         <div className="flex-grow border-t border-gray-200"></div>
                         <span className="flex-shrink mx-4 text-xs text-gray-400">또는</span>
@@ -162,7 +151,7 @@ export default function Login() {
                             <span>구글로 로그인</span>
                         </TailButton>
                         <TailButton variant="naver" onClick={() => { }}>
-                            <img src="src/assets/icons/naver_logo.png" alt="Naver logo" className="w-5 h-5" />
+                            <img src="/src/assets/icons/naver_logo.png" alt="Naver logo" className="w-5 h-5" />
                             <span>네이버로 로그인</span>
                         </TailButton>
                     </div>
