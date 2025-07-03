@@ -5,17 +5,18 @@ const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 // 인스턴스 생성
 const api = axios.create({
-    baseURL: `https://${baseURL}`,
+    baseURL: `http://${baseURL}`,
     headers: {
         'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
+        // 'ngrok-skip-browser-warning': 'true',
     },
 });
-
+console.log(`http://${baseURL}`)
 // ✅ 요청 전에 토큰을 자동으로 붙이는 인터셉터
 api.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('accessToken');
+        console.log("✅ 토큰:", token);
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

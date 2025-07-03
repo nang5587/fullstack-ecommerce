@@ -109,7 +109,7 @@ export default function MyReview() {
         const fetchCompletedReviews = async () => {
             setIsLoading(true);
             try {
-                const res = await api.get('/api/member/reviews');
+                const res = await api.get('/api/member/reviewsList');
                 // `remain: true`인 리뷰만 필터링합니다.
                 const validReviews = Array.isArray(res.data) ? res.data.filter(r => r.remain) : [];
                 setCompletedReviews(validReviews);

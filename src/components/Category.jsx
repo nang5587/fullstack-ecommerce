@@ -16,12 +16,12 @@ export default function Category({ isCateOpen, onClose }) {
         const fetchProducts = async () => {
             try {
                 // const baseUrl = import.meta.env.VITE_BACKEND_URL;
+                console.log()
                 const res = await api.get("/api/public/categoryTree");
                 // console.log()
                 // const res = await fetch(`http://${baseUrl}/api/public/categoryTree`);
                 // const data = await res.json();
                 setCategory(res.data.categoryTree);
-                // setCategory(data.categoryTree);
             } catch (err) {
                 console.error("카테고리를 불러오는 데 실패함: ", err);
             }

@@ -10,7 +10,6 @@ export function AuthProvider({ children }) {
     const [isLoggedIn, setIsLoggedIn] = useState(!!localStorage.getItem('accessToken'));
     const [username, setUsername] = useState('');
 
-
     useEffect(() => {
         const token = localStorage.getItem('accessToken');
         if (token) {
@@ -28,14 +27,10 @@ export function AuthProvider({ children }) {
     // 로그인 함수 (실제로는 API 호출 후 성공 시 호출)
     const login = (token) => {
         try {
-            console.log("1")
             const decoded = jwtDecode(token);
-            console.log("2")
             console.log(decoded)
             localStorage.setItem('accessToken', token);
-            console.log("3")
             setUsername(decoded.username);
-            console.log("4")
             setIsLoggedIn(true);
         } catch (err) {
             console.error('로그인 실패: 잘못된 토큰', err);
