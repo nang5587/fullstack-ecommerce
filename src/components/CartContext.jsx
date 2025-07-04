@@ -100,11 +100,10 @@ export const CartProvider = ({ children }) => {
             try {
                 const token = localStorage.getItem('accessToken');
                 await api.post(`/api/member/cart/add`, {
-                    items: itemsArray.map(item => ({ optionid : item.optionid })) // ⭐
+                    items: itemsArray.map(item => ({ optionid : item.optionid, quantity: item.quantity, })) // ⭐
                 }, { headers: { Authorization: `Bearer ${token}` } });
             } catch (err) {
                 console.error("❌ 서버 장바구니 추가 실패:", err);
-                // 필요하다면 여기서 UI 롤백 로직을 추가할 수 있음
             }
         }
     };

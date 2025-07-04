@@ -1,14 +1,14 @@
-// src/pages/MyQnaPage.js
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { qnaData } from '../data/qnaData';
+// import { qnaData } from '../data/qnaData';
 import QnaCard from '../components/QnaCard';
 
 import QnaDetailModal from './QnaDetailModal';
 import QnaWriteModal from '../components/QnaWriteModal';
 
 import { FiMinus, FiPlus, FiCheck } from 'react-icons/fi';
+
+import api from '../api/axios';
 
 function SwayingCoral({ position = 'left' }) {
     const horizontalPosition = position === 'left' ? 'left-[-10%]' : 'right-[-10%]';
@@ -110,15 +110,45 @@ const getCategoryFromQuestion = (questionText) => {
 
 // --- 메인 페이지 컴포넌트 ---
 export default function MyQnaPage() {
-    const [allMyQna, setAllMyQna] = useState(qnaData);
-    const [hoveredCardId, setHoveredCardId] = useState(null);
+    const [allMyQna, setAllMyQna] = useState([]);
+    const [isLoading, setIsLoading] = useState(true); // 로딩 상태
+    const [error, setError] = useState(null); // 에러 상태
+
     const [isWriteModalOpen, setIsWriteModalOpen] = useState(false);
+    const [productIdToSubmit, setProductIdToSubmit] = useState(null);
 
-    // ✅ 1. 활성화된 카테고리를 저장할 상태 추가
     const [activeCategory, setActiveCategory] = useState('전체');
-
     const [selectedQna, setSelectedQna] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [hoveredCardId, setHoveredCardId] = useState(null);
+
+
+    const fetchQnaList = async () => {
+        // 첫 로딩 시에만 isLoading을 true로 설정
+        if (allMyQna.length === 0) {
+            setIsLoading(true);
+        }
+        setError(null);
+        try {
+            const response = await api.get('/api/member/qnalist');
+            setAllMyQna(response.data);
+        } catch (err) {
+            console.error("Failed to fetch Q&A list:", err);
+            setError("데이터를 불러오는 데 실패했습니다.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        const productIdFromState = sessionStorage.getItem('askAboutProductId');
+        if (productIdFromState) {
+            setProductIdToSubmit(productIdFromState);
+            setIsWriteModalOpen(true);
+            sessionStorage.removeItem('askAboutProductId');
+        }
+        fetchQnaList();
+    }, []);
 
     // ✅ 2. useMemo 로직에 카테고리 필터링 추가
     const filteredQnaList = useMemo(() => {
@@ -141,23 +171,77 @@ export default function MyQnaPage() {
     };
 
     const handleNewQnaClick = () => {
-        setIsWriteModalOpen(true); 
+        setIsWriteModalOpen(true);
     };
 
-    // 질문 제출
-    const handleQnaSubmit = (newQuestionData) => {
-        const newQnaItem = {
-            username: 'KalaniLover', // 현재 로그인한 사용자라고 가정
+
+    const handleQnaSubmit = async (newQuestionData) => {
+        const payload = {
+            imgname: productIdToSubmit,
             question: newQuestionData.question,
         };
-        setAllMyQna(prevQna => [newQnaItem, ...prevQna]);
-        
-        // 모달 닫기
-        handleCloseModal();
+        console.log("Submitting payload to /api/member/addqna:", payload);
+        try {
+            console.log("새 질문 제출:", payload);
+            const response = await api.post('api/member/addqna', payload);
+            console.log(response)
+            setAllMyQna(response.data);
+            // await fetchQnaList();
+        } catch (err) {
+            console.error("Failed to submit new question:", err);
+            alert("질문 등록에 실패했습니다.");
+        } finally {
+            // 모달 닫기
+            handleCloseModal();
+        }
+    };
+
+    const handleQnaDelete = async (qaidToDelete) => {
+        // 사용자에게 정말 삭제할 것인지 한 번 더 확인
+        if (!window.confirm("이 질문을 정말 삭제하시겠습니까?")) {
+            return;
+        }
+
+        console.log("Deleting QnA with qaid:", qaidToDelete);
+
+        try {
+            // 1. 백엔드로 보낼 요청 Body (또는 DTO) 구성
+            const payload = { qaid: qaidToDelete };
+
+            // 2. PATCH 요청으로 API 호출
+            const response = await api.patch('/api/member/deleteqna', payload);
+
+            // 3. 응답으로 받은 새로운 QnA 전체 목록으로 상태 업데이트
+            console.log("Received updated QnA list after deletion:", response.data);
+            setAllMyQna(response.data);
+
+            // 4. 상세 모달 닫기
+            handleCloseModal();
+
+        } catch (err) {
+            console.error("Failed to delete QnA:", err);
+            alert("질문 삭제에 실패했습니다.");
+        }
     };
 
     // 필터링 버튼에 사용할 카테고리 목록
     const categories = ['전체', '사이즈/핏', '배송', '재입고', '상품정보'];
+
+    if (isLoading) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-[#fff3dd]">
+                <p id="font3" className="text-xl text-[#806050]">Q&A 목록을 불러오는 중...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex justify-center items-center min-h-screen bg-[#fff3dd]">
+                <p id="font3" className="text-xl text-red-500">{error}</p>
+            </div>
+        );
+    }
 
     return (
         <div className="w-11/12 ml-20">
@@ -208,12 +292,12 @@ export default function MyQnaPage() {
                 </div>
                 <AnimatePresence>
                     {isDetailModalOpen && selectedQna && (
-                        <QnaDetailModal qna={selectedQna} onClose={handleCloseModal} />
+                        <QnaDetailModal qna={selectedQna} onClose={handleCloseModal} onDelete={handleQnaDelete}  />
                     )}
                     {/* ✅ 질문 작성 모달 렌더링 추가 */}
                     {isWriteModalOpen && (
-                        <QnaWriteModal 
-                            onClose={handleCloseModal} 
+                        <QnaWriteModal
+                            onClose={handleCloseModal}
                             onSubmit={handleQnaSubmit}
                         />
                     )}

@@ -51,8 +51,16 @@ export default function Login() {
         if (isMock) {
             const fakeToken = "test-dev-token";
             localStorage.setItem('accessToken', fakeToken);
-            login(fakeToken);
-            navigate(redirect || "/");
+            login(fakeToken); // 가정: AuthContext의 login 함수
+
+            // ✨ Mock 로그인에서도 리디렉션 로직 추가
+            const redirectPath = sessionStorage.getItem('loginRedirectPath');
+            if (redirectPath) {
+                sessionStorage.removeItem('loginRedirectPath');
+                navigate(redirectPath, { replace: true });
+            } else {
+                navigate(redirect || "/", { replace: true });
+            }
             return;
         }
 
@@ -70,9 +78,22 @@ export default function Login() {
                 authToken = authToken.replace("Bearer ", "");
                 localStorage.setItem('accessToken', authToken);
                 console.log('로그인 성공! 토큰을 저장했습니다.');
-                
+
                 login(authToken);
-                navigate(redirect || "/");
+
+                const redirectPath = sessionStorage.getItem('loginRedirectPath');
+
+                if (redirectPath) {
+                    // 2. 경로가 있다면, 사용 후 즉시 삭제하고 해당 경로로 이동합니다.
+                    console.log(`리디렉션 경로 발견: ${redirectPath}`);
+                    sessionStorage.removeItem('loginRedirectPath');
+                    // navigate의 두 번째 인자로 { replace: true }를 주면
+                    // history 스택에 로그인 페이지 기록이 남지 않아 뒤로가기 시 더 자연스럽습니다.
+                    navigate(redirectPath, { replace: true });
+                } else {
+                    // 3. 경로가 없다면, 기존의 기본 경로로 이동합니다.
+                    navigate(redirect || "/", { replace: true });
+                }
             } else {
                 // 이 경우는 보통 백엔드에서 토큰을 보내주지 않은 경우입니다.
                 setErrorMsg("로그인에 실패했습니다. (토큰 없음)");

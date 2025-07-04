@@ -66,24 +66,26 @@ export default function Detail() {
 
     const navigate = useNavigate();
     const handleQnaClick = () => {
+        // 실제 로그인 상태를 확인하는 로직으로 대체해야 합니다.
+        const isLoggedIn = !!localStorage.getItem('accessToken');
         if (isLoggedIn) {
-            navigate('/mypage/qna', {
-                state: {
-                    askAboutProductId: productId
-                }
-            });
-        } else {
-            const redirectTo = `/mypage/qna`;
-            const stateToPass = { askAboutProductId: productId };
+            // 1. 전달할 데이터를 sessionStorage에 저장합니다.
+            // 키 이름은 일관성을 위해 'askAboutProductId'로 합니다.
+            sessionStorage.setItem('askAboutProductId', productId);
 
-            // 로그인 페이지로 이동하면서, 로그인 후 돌아올 경로와 함께 전달할 상태도 함께 넘깁니다.
-            navigate('/login', {
-                state: {
-                    from: redirectTo,
-                    // 로그인 후 state를 다시 복원하기 위한 추가 정보
-                    redirectState: stateToPass
-                }
-            });
+            // 2. Q&A 페이지로 이동합니다.
+            navigate('/mypage/myqna');
+        } else {
+            // 1. 로그인 후 돌아올 경로를 저장합니다.
+            const redirectTo = '/mypage/myqna';
+            sessionStorage.setItem('loginRedirectPath', redirectTo);
+
+            // 2. Q&A 페이지로 전달해야 할 데이터도 함께 저장합니다.
+            // 이 데이터는 로그인 성공 후 Q&A 페이지가 읽게 됩니다.
+            sessionStorage.setItem('askAboutProductId', productId);
+
+            // 3. 로그인 페이지로 이동합니다. 이제 state 객체는 필요 없습니다.
+            navigate('/login');
         }
     };
 
@@ -121,56 +123,56 @@ export default function Detail() {
 
     // 상품정보 useEffect
     // ✅ api 인스턴스를 사용하도록 수정한 useEffect
-useEffect(() => {
-    window.scrollTo(0, 0);
+    useEffect(() => {
+        window.scrollTo(0, 0);
 
-    const fetchProduct = async () => {
-        setLoading(true);
-        setError(null); // 새로운 상품을 불러오기 전에 이전 에러 상태 초기화
+        const fetchProduct = async () => {
+            setLoading(true);
+            setError(null); // 새로운 상품을 불러오기 전에 이전 에러 상태 초기화
 
-        try {
-            // 1. axios 직접 호출 대신, 설정된 api 인스턴스를 사용합니다.
-            // baseURL은 자동으로 적용되므로 뒷부분 경로만 적어줍니다.
-            const res = await api.get(`/api/public/detail/${productId}`);
+            try {
+                // 1. axios 직접 호출 대신, 설정된 api 인스턴스를 사용합니다.
+                // baseURL은 자동으로 적용되므로 뒷부분 경로만 적어줍니다.
+                const res = await api.get(`/api/public/detail/${productId}`);
 
-            // 2. axios는 응답 데이터를 res.data에 담아줍니다.
-            const data = res.data;
-            setProduct(data);
-            console.log("상품 상세 정보:", data);
+                // 2. axios는 응답 데이터를 res.data에 담아줍니다.
+                const data = res.data;
+                setProduct(data);
+                console.log("상품 상세 정보:", data);
 
-            const imgs = data.imglist || [];
-            const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
+                const imgs = data.imglist || [];
+                const sortedImgs = [...imgs].sort((a, b) => b.ismain - a.ismain);
 
-            // 3. 이미지 URL을 생성할 때도 하드코딩된 baseUrl 대신
-            //    api 인스턴스의 기본 URL 설정을 활용하여 일관성을 유지합니다.
-            const imagePairs = sortedImgs.map(img => {
-                const baseImageUrl = `${api.defaults.baseURL}/api/public/img/goods/`;
-                return {
-                    small: `${baseImageUrl}${img.imgUrl}`,
-                    large: `${baseImageUrl}${img.imgUrl}`
-                };
-            });
+                // 3. 이미지 URL을 생성할 때도 하드코딩된 baseUrl 대신
+                //    api 인스턴스의 기본 URL 설정을 활용하여 일관성을 유지합니다.
+                const imagePairs = sortedImgs.map(img => {
+                    const baseImageUrl = `${api.defaults.baseURL}/api/public/img/goods/`;
+                    return {
+                        small: `${baseImageUrl}${img.imgUrl}`,
+                        large: `${baseImageUrl}${img.imgUrl}`
+                    };
+                });
 
-            setThumbnails(imagePairs);
+                setThumbnails(imagePairs);
 
-            if (imagePairs.length > 0) {
-                setMainImage(imagePairs[0]);
+                if (imagePairs.length > 0) {
+                    setMainImage(imagePairs[0]);
+                }
+
+            } catch (e) {
+                // axios 에러 객체에서 더 자세한 정보를 얻을 수 있습니다.
+                console.error("상품 정보를 불러오는 데 실패했습니다:", e.response?.data || e.message);
+                setError(e);
+            } finally {
+                setLoading(false);
             }
+        };
 
-        } catch (e) {
-            // axios 에러 객체에서 더 자세한 정보를 얻을 수 있습니다.
-            console.error("상품 정보를 불러오는 데 실패했습니다:", e.response?.data || e.message);
-            setError(e);
-        } finally {
-            setLoading(false);
+        // productId가 있을 때만 fetchProduct 함수를 호출합니다.
+        if (productId) {
+            fetchProduct();
         }
-    };
-
-    // productId가 있을 때만 fetchProduct 함수를 호출합니다.
-    if (productId) {
-        fetchProduct();
-    }
-}, [productId]);
+    }, [productId]);
 
 
     // 리뷰 리스트 useEffect
@@ -269,10 +271,10 @@ useEffect(() => {
                 );
             } else {
                 await api.delete('/api/member/deletewish', {
-                params: {
-                    imgname: product.imgname
-                }
-            });
+                    params: {
+                        imgname: product.imgname
+                    }
+                });
             }
         } catch (error) {
             console.error('위시리스트 업데이트 실패:', error);

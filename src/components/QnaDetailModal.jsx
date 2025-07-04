@@ -4,10 +4,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { X, Trash2 } from 'lucide-react';
 
-export default function QnaDetailModal({ qna, onClose }) {
+export default function QnaDetailModal({ qna, onClose, onDelete }) {
     if (!qna) return null;
-
-    const handleDelete = () => console.log('삭제:', qna.qnaId);
 
     return (
         <motion.div
@@ -30,7 +28,7 @@ export default function QnaDetailModal({ qna, onClose }) {
                     <X size={28} />
                 </button>
 
-                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">241436006 보기</h2>
+                <h2 className="text-2xl font-bold mb-6 text-center text-gray-800"></h2>
 
                 {/* 상품 정보 */}
                 <div className="flex items-center gap-4 p-4 bg-gray-100 rounded-lg mb-6 flex-shrink-0">
@@ -69,11 +67,12 @@ export default function QnaDetailModal({ qna, onClose }) {
                 </div>
 
                 {/* 수정/삭제 버튼 (내 질문일 경우에만 보이도록) */}
-                <div className="flex gap-4 mt-6 flex-shrink-0">
-                    <button onClick={handleDelete} className="flex-1 p-3 bg-rose-100 text-rose-700 rounded-lg flex items-center justify-center gap-2 hover:bg-rose-200">
-                        <Trash2 size={18} /> 삭제
+                <button
+                        onClick={() => onDelete(qna.qaid)} // 클릭 시 onDelete 함수 호출
+                        className="px-4 py-2 text-sm font-semibold text-red-600 bg-red-100 hover:bg-red-200 rounded-lg transition-colors"
+                    >
+                        삭제하기
                     </button>
-                </div>
             </motion.div>
         </motion.div>
     );

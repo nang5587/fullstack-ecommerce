@@ -12,7 +12,8 @@ export default function OrderCard({ item, onReviewClick }) {
     };
 
     // ✅ 이미지 URL을 안전하게 생성
-    const imageUrl = `${api.defaults.baseURL}${item.imgUrl}`;
+    const baseURL = import.meta.env.VITE_BACKEND_URL;
+    const imageUrl = `http://${baseURL}/api/public/img/goods/${item.imgUrl}`;
 
     return (
         <motion.div className="group relative w-full h-full rounded-[80px] overflow-hidden select-none shadow-kal">

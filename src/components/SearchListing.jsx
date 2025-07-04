@@ -1,13 +1,16 @@
-import SidebarFilters from "./SidebarFilter"
+import SidebarFilters from "./SidebarFilter";
 import ProductCard from "./ProductCard";
 import SortMenu from './SortMenu';
-
 import TailButton from "../UI/TailButton";
 
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
-// ✅ 1. 설정된 axios 인스턴스(api)를 import 합니다.
+import qs from 'qs';
+
+
+// ✅ axios 인스턴스(api)
 import api from '../api/axios';
 
 const MIN_PRICE = 0;
@@ -18,10 +21,13 @@ export default function SearchListing() {
     const [page, setPage] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
     const [hasMore, setHasMore] = useState(true);
+    const { isLoggedIn } = useAuth();
+
+    // 🔥 wishMap: { imgname: true/false }
+    const [wishMap, setWishMap] = useState({});
 
     const location = useLocation();
     const navigate = useNavigate();
-
     const PRODUCTS_PER_PAGE = 20;
 
     const currentParams = new URLSearchParams(location.search);
@@ -40,14 +46,14 @@ export default function SearchListing() {
     const initialSort = currentParams.get('sort') || 'newest';
     const [sortOrder, setSortOrder] = useState(initialSort);
 
-    // 검색어, 필터, 정렬이 바뀌면 페이지 초기화 + 상품 초기화 + hasMore 초기화
+    // 1. 검색어/필터/정렬 바뀌면 페이지 초기화
     useEffect(() => {
         setPage(1);
         setDisplayedProducts([]);
         setHasMore(true);
     }, [location.search]);
 
-    // 페이지 또는 필터 변경 시 상품 불러오기
+    // 2. 상품 조회
     useEffect(() => {
         if (!keyword) {
             setIsLoading(false);
@@ -58,20 +64,15 @@ export default function SearchListing() {
 
         const fetchProducts = async () => {
             setIsLoading(true);
-
             try {
                 const queryParams = new URLSearchParams(location.search);
                 queryParams.set('page', page);
                 queryParams.set('limit', PRODUCTS_PER_PAGE);
-                
-                // ✅ 2. fetch 대신 'api.get'을 사용합니다.
-                // 토큰은 인터셉터가 자동으로 추가해주므로 헤더 설정이 필요 없습니다.
-                // params 객체를 사용하면 axios가 자동으로 쿼리 스트링을 만들어줍니다.
+
+                // 상품 데이터 요청
                 const res = await api.get('/api/public/search', {
                     params: queryParams
                 });
-
-                // ✅ 3. axios는 응답 데이터를 res.data에 담아줍니다.
                 const data = res.data || [];
 
                 if (page === 1) {
@@ -91,11 +92,29 @@ export default function SearchListing() {
         };
 
         fetchProducts();
-    }, [page, location.search, keyword]); // keyword 의존성은 유지하는 것이 좋습니다.
+    }, [page, location.search]);
 
+    // 3. wishMap 요청 (상품이 바뀔 때마다, 상품이 있으면)
+    useEffect(() => {
+        if (!isLoggedIn || displayedProducts.length === 0) {
+            setWishMap({});
+            return;
+        }
+
+        const imgnames = displayedProducts.map(p => p.imgname).filter(Boolean);
+        if (imgnames.length === 0) return;
+
+        api.get('/api/member/heartOnList', {
+            params: { imgnames },
+            paramsSerializer: params => qs.stringify(params, { arrayFormat: 'repeat' }),
+        })
+            .then(res => setWishMap(res.data))
+            .catch(() => setWishMap({}));
+    }, [displayedProducts, isLoggedIn]);
+
+    // 필터 & 정렬 변경
     const handleFilterChange = (changedFilter) => {
         const currentParams = new URLSearchParams(location.search);
-
         Object.entries(changedFilter).forEach(([key, value]) => {
             currentParams.delete(key);
 
@@ -138,6 +157,7 @@ export default function SearchListing() {
         }
     };
 
+    // gender 예외처리(예시)
     const filteredProducts = displayedProducts.filter(product => {
         if (filters.gender.length > 0) {
             return product.main !== 'kids';
@@ -155,7 +175,6 @@ export default function SearchListing() {
                             '{keyword}' 검색 결과 <span className="text-kalani-gold">{filteredProducts.length}</span>개
                         </h2>
                     ) : (
-                        // 검색 결과가 없을 때도 공간을 차지하도록 invisible 처리
                         <h2 className="text-xl font-semibold invisible">Placeholder</h2>
                     )}
                     {filteredProducts.length > 0 && <SortMenu sortOrder={sortOrder} onSortChange={handleSortChange} />}
@@ -173,10 +192,14 @@ export default function SearchListing() {
                         <div className="col-span-full text-center py-20 text-gray-500 font-medium">
                             '{keyword}'에 대한 검색 결과가 없습니다.
                         </div>
-                    )} 
+                    )}
 
                     {filteredProducts.map(product => (
-                        <ProductCard key={product.imgname || product.fullcode} product={product} />
+                        <ProductCard
+                            key={product.imgname || product.fullcode}
+                            product={product}
+                            liked={wishMap[product.imgname] || false}  // 각 상품에 하트 상태 전달
+                        />
                     ))}
                 </div>
 

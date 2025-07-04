@@ -23,7 +23,24 @@ export default function EditProfileForm({
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+
+        // 전화번호 하이픈 자동 삽입
+        if (name === 'phone') {
+            const raw = value.replace(/\D/g, ''); // 숫자만 남김
+            let formatted = raw;
+
+            if (raw.length <= 3) {
+                formatted = raw;
+            } else if (raw.length <= 7) {
+                formatted = `${raw.slice(0, 3)}-${raw.slice(3)}`;
+            } else if (raw.length <= 11) {
+                formatted = `${raw.slice(0, 3)}-${raw.slice(3, 7)}-${raw.slice(7, 11)}`;
+            }
+
+            setFormData((prev) => ({ ...prev, [name]: formatted }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmit = (e) => {
@@ -39,7 +56,7 @@ export default function EditProfileForm({
                 <div className="col-span-1"><input type="text" name="nickname" value={formData.nickname} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>
                 <div className="col-span-1">
                     <select name="gender" value={formData.gender} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2">
-                        <option value="">선택</option><option value="여성">여성</option><option value="남성">남성</option>
+                        <option value="">선택</option><option value="FEMALE">여성</option><option value="MALE">남성</option>
                     </select>
                 </div>
                 <div className="col-span-2"><input type="tel" name="phone" value={formData.phone} onChange={handleChange} className="w-full border border-gray-200 rounded-xl px-3 py-2" /></div>

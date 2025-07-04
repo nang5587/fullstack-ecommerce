@@ -17,7 +17,12 @@ function BackgroundLayers() {
         </>
     );
 }
-
+function genderToKorean(gender) {
+    if (!gender) return '';
+    if (gender === "FEMALE" || gender === "여성") return "여성";
+    if (gender === "MALE" || gender === "남성") return "남성";
+    return gender; // 기타 값
+}
 const Profile = () => {
     const [leftFlipped, setLeftFlipped] = useState(false);
     const [rightFlipped, setRightFlipped] = useState(false);
@@ -57,8 +62,11 @@ const Profile = () => {
                 if (infoData.birth) {
                     infoData.birth = infoData.birth.replace(/\./g, '-');
                 }
+                if ('gender' in infoData) {
+                    infoData.gender = infoData.gender === "FEMALE" ? "여성" : "남성";
+                }
                 // if ('gender' in infoData) {
-                //     infoData.gender = infoData.gender === "FEMALE" ? "여성" : "남성";
+                //     infoData.gender = infoData.gender === "FEMALE" ? "여성" : infoData.gender === "MALE" ? "남성" : "기타";
                 // }
 
                 // 두 API의 응답 데이터를 하나의 상태로 합침
@@ -189,7 +197,7 @@ const Profile = () => {
                                             <div className="pt-7 px-4 text-xl">
                                                 {/* 여기에 모든 정보 목록을 넣습니다. */}
                                                 <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이름</p><p className='font-bold'>{userData.nickname}</p></div>
-                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">성별</p><p className='font-bold'>{userData.gender}</p></div>
+                                                <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">성별</p><p className='font-bold'>{genderToKorean(userData.gender)}</p></div>
                                                 <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">전화번호</p><p className='font-bold'>{userData.phone}</p></div>
                                                 <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">이메일</p><p className='font-bold'>{userData.email}</p></div>
                                                 <div className='flex justify-between border-b border-gray-200 pb-4 mb-4'><p className="text-gray-600">가입일</p><p className='font-bold'>{userData.createdat.split('T')[0]}</p></div>

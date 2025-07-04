@@ -29,8 +29,9 @@ export default function ReviewWriteModal({ item, onClose, onSubmit }) {
         onSubmit(submittedReview);
     };
 
-    // ✅ 2. 이미지의 전체 URL을 생성합니다.
-    const imageUrl = item.imgUrl ? `${api.defaults.baseURL}${item.imgUrl}` : '';
+    const baseURL = import.meta.env.VITE_BACKEND_URL;
+    const imageUrl = `http://${baseURL}/api/public/img/goods/${item.imgUrl}`;
+    // const imageUrl = item.imgUrl ? `${api.defaults.baseURL}${item.imgUrl}` : '';
 
     return (
         <motion.div
@@ -62,7 +63,7 @@ export default function ReviewWriteModal({ item, onClose, onSubmit }) {
                         </div>
                     </div>
                 </Link>
-                
+
                 <form onSubmit={handleSubmit}>
                     <div className="mb-6 text-center">
                         <p className="mb-2">상품은 어떠셨나요?</p>

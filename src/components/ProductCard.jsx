@@ -5,8 +5,8 @@ import { motion } from 'framer-motion';
 import api from '../api/axios'; // ← axios 인스턴스 import
 import { useAuth } from '../context/AuthContext';
 
-const ProductCard = memo(({ product }) => {
-    const [liked, setLiked] = useState(false);
+const ProductCard = memo(({ product, liked:initialLiked }) => {
+    const [liked, setLiked] = useState(initialLiked);
     const { isLoggedIn } = useAuth();
 
     if (!product) return null;
@@ -15,28 +15,33 @@ const ProductCard = memo(({ product }) => {
     const baseUrl = import.meta.env.VITE_BACKEND_URL;
     const imgUrl = `http://${baseUrl}/api/public/img/goods/${productCode}.jpg`;
 
+    // useEffect(() => {
+    //     // 로그인 상태가 아니면 '좋아요'가 아닌 상태로 확정
+    //     if (!isLoggedIn) {
+    //         setLiked(false);
+    //         return;
+    //     }
+
+    //     const checkWishStatus = async () => {
+    //         try {
+    //             // ✅ 2. axios.get 사용법 수정: 파라미터를 params 객체로 전달
+    //             const res = await api.get('/api/member/heartOn', {
+    //                 params: { imgname: productCode }
+    //             });
+    //             setLiked(res.data === true);
+    //         } catch (error) {
+    //             console.error(`[ProductCard - ${productCode}] 위시리스트 상태 확인 실패:`, error);
+    //             setLiked(false); // 에러 발생 시에도 '좋아요'가 아닌 것으로 간주
+    //         }
+    //     };
+
+    //     checkWishStatus();
+    // }, [productCode, isLoggedIn]);
+
     useEffect(() => {
-        // 로그인 상태가 아니면 '좋아요'가 아닌 상태로 확정
-        if (!isLoggedIn) {
-            setLiked(false);
-            return;
-        }
+        setLiked(initialLiked); // prop이 바뀔 때 상태 동기화
+    }, [initialLiked]);
 
-        const checkWishStatus = async () => {
-            try {
-                // ✅ 2. axios.get 사용법 수정: 파라미터를 params 객체로 전달
-                const res = await api.get('/api/member/heartOn', {
-                    params: { imgname: productCode }
-                });
-                setLiked(res.data === true);
-            } catch (error) {
-                console.error(`[ProductCard - ${productCode}] 위시리스트 상태 확인 실패:`, error);
-                setLiked(false); // 에러 발생 시에도 '좋아요'가 아닌 것으로 간주
-            }
-        };
-
-        checkWishStatus();
-    }, [productCode, isLoggedIn]);
 
     const handleWishToggle = async (e) => {
         e.preventDefault();

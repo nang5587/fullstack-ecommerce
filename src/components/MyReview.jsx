@@ -34,6 +34,7 @@ const Shell = ({ className, delay = 0 }) => (
         <img src="/clam.png" alt="decorative shell" className="w-full h-full" />
     </motion.div>
 );
+const baseURL = import.meta.env.VITE_BACKEND_URL;
 
 const ReviewCard = ({ item, onCardClick }) => (
     <motion.div
@@ -41,7 +42,7 @@ const ReviewCard = ({ item, onCardClick }) => (
         className="w-9/12 bg-white rounded-2xl overflow-hidden cursor-pointer border border-transparent hover:border-kalani-gold shadow-kal"
         whileHover={{ y: -5 }}
     >
-        <img src={`${api.defaults.baseURL}${item.imgUrl}`} alt={item.productName} className="w-full aspect-[4/3] object-cover" />
+        <img src={`http://${baseURL}/api/public/img/goods/${item.imgUrl}`} alt={item.productName} className="w-full aspect-[4/3] object-cover" />
         <div className="p-4">
             <h4 className="font-bold text-gray-700 truncate">{item.productName}</h4>
             <p className="text-sm text-gray-400">{new Date(item.createdate).toLocaleDateString()}</p>
